@@ -10,10 +10,6 @@
   "author": "",
   "license": "ISC",
   "description": "",
-  "dependencies": {
-    "three": "^0.166.1",
-    "three-orbitcontrols": "^2.110.2"
-  },
   "devDependencies": {
     "live-server": "^1.2.2"
   }

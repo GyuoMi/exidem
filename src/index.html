@@ -1,32 +1,58 @@
-<!DOCTYPE html>
-<head>
-<title>stairs.html</title>
-<meta charset="utf-8">
-<link rel="shortcut icon" href="ok.ico"/>
-<style>
-body{margin:0px;background-color:#024;font-family:Monospace;overflow:hidden;}
-a{font-size:12pt;color:#0c0;text-decoration:none;}
-</style>
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Endless Staircase</title>
+        <!-- Link to your CSS file -->
+        <link rel="stylesheet" href="default.css" />
+        <style>
+            #blocker {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+            }
 
-<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
-<script type="importmap">
-	{
-		"imports":{
-			"three":"https://unpkg.com/three@0.160.0/build/three.module.js",
-			"three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"
-		}
-	}
-</script>
+            #instructions {
+                width: 100%;
+                height: 100%;
 
-</head>
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
 
-<body>
+                text-align: center;
+                font-size: 14px;
+                cursor: pointer;
+                color: white;
+            }
+        </style>
+        <!-- Import Map for Three.js -->
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "https://unpkg.com/three@0.168.0/build/three.module.js",
+                    "three/addons/": "https://unpkg.com/three@0.168.0/examples/jsm/"
+                }
+            }
+        </script>
+    </head>
 
-<div style="position:absolute;font-size:20.1px;top:5px;width:99%;text-align:center;color:#fc0;">
-<span style="color:#fc0;font-size:20.5pt;">Stairs</span>
-</select>
-</div>
-
-<script type="module" src="stairs.js">zzzz</script>
-</body>
+    <body>
+        <div id="blocker">
+            <div id="instructions">
+                <p style="font-size: 36px">Click to play</p>
+                <p>
+                    Move: WASD<br />
+                    Jump: SPACE<br />
+                    Look: MOUSE
+                </p>
+            </div>
+        </div>
+        <div id="canvasContainer"></div>
+        <!-- <script src="three.js"></script> -->
+        <script type="module" src="stairs.js"></script>
+    </body>
 </html>
