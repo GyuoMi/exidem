@@ -1,67 +1,209 @@
 import * as THREE from "three";
-import { setupControls } from "./controls.js";
-let camera,
-  renderer,
-  scene,
-  animate,
-  drawFloor,
-  state,
-  stackOfPos,
-  startPos,
-  endPos,
-  stepV,
-  stepLength,
-  spotLight,
-  updateMovement;
+import Stats from "three/addons/libs/stats.module.js";
+import { Octree } from "three/addons/math/Octree.js";
+import { OctreeHelper } from "three/addons/helpers/OctreeHelper.js";
+import { Capsule } from "three/addons/math/Capsule.js";
+import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 
-const containerId = "canvasContainer";
+let state, stackOfPos, startPos, endPos, drawFloor, stepLength, stepV;
+const container = document.getElementById("canvasContainer");
 const stairDef = { w: 20, l: 80, h: 20 };
 const offset = new THREE.Vector3(-50, 10, 150);
 state = "rotate";
 stackOfPos = [];
 startPos = new THREE.Vector3();
 endPos = new THREE.Vector3();
-stepV = new THREE.Vector3();
-stepLength = 0.0015;
-const width = window.innerWidth;
-const height = window.innerHeight;
 
-renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(width, height);
-document.getElementById(containerId).appendChild(renderer.domElement);
+const clock = new THREE.Clock();
 
-window.addEventListener("resize", () => {
-  const newWidth = window.innerWidth;
-  const newHeight = window.innerHeight;
-  renderer.setSize(newWidth, newHeight);
-  camera.aspect = newWidth / newHeight;
-  camera.updateProjectionMatrix();
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x88ccee);
+// scene.fog = new THREE.Fog(0x88ccee, 0, 50);
+
+const camera = new THREE.PerspectiveCamera(
+  70,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000,
+);
+camera.rotation.order = "YXZ";
+
+const fillLight1 = new THREE.HemisphereLight(0x8dc1de, 0x00668d, 1.5);
+fillLight1.position.set(2, 1, 1);
+scene.add(fillLight1);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5);
+directionalLight.position.set(-5, 25, -1);
+directionalLight.castShadow = true;
+directionalLight.shadow.camera.near = 0.01;
+directionalLight.shadow.camera.far = 500;
+directionalLight.shadow.camera.right = 30;
+directionalLight.shadow.camera.left = -30;
+directionalLight.shadow.camera.top = 30;
+directionalLight.shadow.camera.bottom = -30;
+directionalLight.shadow.mapSize.width = 1024;
+directionalLight.shadow.mapSize.height = 1024;
+directionalLight.shadow.radius = 4;
+directionalLight.shadow.bias = -0.00006;
+scene.add(directionalLight);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setAnimationLoop(animate);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.VSMShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+container.appendChild(renderer.domElement);
+
+const stats = new Stats();
+stats.domElement.style.position = "absolute";
+stats.domElement.style.top = "0px";
+container.appendChild(stats.domElement);
+
+const GRAVITY = 30;
+
+const STEPS_PER_FRAME = 5;
+
+const worldOctree = new Octree();
+
+const playerCollider = new Capsule(
+  new THREE.Vector3(0, 0.35, 0),
+  new THREE.Vector3(0, 1, 0),
+  0.35,
+);
+
+const playerVelocity = new THREE.Vector3();
+const playerDirection = new THREE.Vector3();
+
+let playerOnFloor = false;
+let mouseTime = 0;
+
+const keyStates = {};
+
+const vector1 = new THREE.Vector3();
+const vector2 = new THREE.Vector3();
+const vector3 = new THREE.Vector3();
+
+document.addEventListener("keydown", (event) => {
+  keyStates[event.code] = true;
 });
 
-camera = new THREE.PerspectiveCamera(75, width / height, 1, 10000);
-camera.position.set(0, stairDef.h / 2, 0); // Positioning the camera on the first step
+document.addEventListener("keyup", (event) => {
+  keyStates[event.code] = false;
+});
 
-scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x000000, 0.0025);
+container.addEventListener("mousedown", () => {
+  document.body.requestPointerLock();
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-scene.add(ambientLight);
+  mouseTime = performance.now();
+});
 
-spotLight = new THREE.PointLight(0xffffff, 1.0, 400);
-spotLight.position.set(0, 0, 500);
-scene.add(spotLight);
+document.body.addEventListener("mousemove", (event) => {
+  if (document.pointerLockElement === document.body) {
+    camera.rotation.y -= event.movementX / 500;
+    camera.rotation.x -= event.movementY / 500;
+  }
+});
 
-const { controls, updateMovement: movement } = setupControls(camera, renderer);
-updateMovement = movement;
+window.addEventListener("resize", onWindowResize);
 
-const lightIndicatorGeometry = new THREE.SphereGeometry(0.5, 16, 8);
-const lightIndicatorMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-const lightIndicator = new THREE.Mesh(
-  lightIndicatorGeometry,
-  lightIndicatorMaterial,
-);
-lightIndicator.position.copy(spotLight.position);
-scene.add(lightIndicator);
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function playerCollisions() {
+  const result = worldOctree.capsuleIntersect(playerCollider);
+
+  playerOnFloor = false;
+
+  if (result) {
+    playerOnFloor = result.normal.y > 0;
+
+    if (!playerOnFloor) {
+      playerVelocity.addScaledVector(
+        result.normal,
+        -result.normal.dot(playerVelocity),
+      );
+    }
+
+    if (result.depth >= 1e-10) {
+      playerCollider.translate(result.normal.multiplyScalar(result.depth));
+    }
+  }
+}
+
+function updatePlayer(deltaTime) {
+  let damping = Math.exp(-4 * deltaTime) - 1;
+
+  if (!playerOnFloor) {
+    playerVelocity.y -= GRAVITY * deltaTime;
+
+    // small air resistance
+    damping *= 0.1;
+  }
+
+  playerVelocity.addScaledVector(playerVelocity, damping);
+
+  const deltaPosition = playerVelocity.clone().multiplyScalar(deltaTime);
+  playerCollider.translate(deltaPosition);
+
+  playerCollisions();
+
+  // fake ground
+  camera.position.copy(playerCollider.end);
+  if (camera.position.y < 10) {
+    playerVelocity.y = 0;
+    camera.position.y = 10;
+  }
+}
+function getForwardVector() {
+  camera.getWorldDirection(playerDirection);
+  playerDirection.y = 0;
+  playerDirection.normalize();
+
+  return playerDirection;
+}
+
+function getSideVector() {
+  camera.getWorldDirection(playerDirection);
+  playerDirection.y = 0;
+  playerDirection.normalize();
+  playerDirection.cross(camera.up);
+
+  return playerDirection;
+}
+
+function controls(deltaTime) {
+  // gives a bit of air control with playeronFloor
+  // const speedDelta = deltaTime * (playerOnFloor ? 25 : 8);
+  const speedDelta = (deltaTime / 2) * 250;
+
+  if (keyStates["KeyW"]) {
+    playerVelocity.add(getForwardVector().multiplyScalar(speedDelta));
+  }
+
+  if (keyStates["KeyS"]) {
+    playerVelocity.add(getForwardVector().multiplyScalar(-speedDelta));
+  }
+
+  if (keyStates["KeyA"]) {
+    playerVelocity.add(getSideVector().multiplyScalar(-speedDelta));
+  }
+
+  if (keyStates["KeyD"]) {
+    playerVelocity.add(getSideVector().multiplyScalar(speedDelta));
+  }
+
+  // if (playerOnFloor) {
+  //   if (keyStates["Space"]) {
+  //     playerVelocity.y = 400;
+  //   }
+  // }
+}
 
 const stairGroup = new THREE.Group();
 scene.add(stairGroup);
@@ -99,39 +241,39 @@ drawFloor = function (orientation, startPos, numOfStairs = 25, isUp = true) {
   return cube.position.clone();
 };
 
-let lastGeneratedHeight = 10;
-const raycaster = new THREE.Raycaster();
-const downVector = new THREE.Vector3(0, -1, 0);
+const helper = new OctreeHelper(worldOctree);
+helper.visible = false;
+scene.add(helper);
 
-animate = function () {
-  requestAnimationFrame(animate);
+const gui = new GUI({ width: 200 });
+gui.add({ debug: false }, "debug").onChange(function (value) {
+  helper.visible = value;
+});
 
-  // Cast the ray slightly below the camera
-  const cameraFeetPosition = new THREE.Vector3(
-    camera.position.x,
-    camera.position.y - stairDef.h / 2,
-    camera.position.z,
-  );
-  raycaster.set(cameraFeetPosition, downVector);
+function teleportPlayerIfOob() {
+  if (camera.position.y <= -25) {
+    playerCollider.start.set(0, 0.35, 0);
+    playerCollider.end.set(0, 1, 0);
+    playerCollider.radius = 0.35;
+    camera.position.copy(playerCollider.end);
+    camera.rotation.set(0, 0, 0);
+  }
+}
 
-  // Check intersections with the stairs group
-  const intersects = raycaster.intersectObjects(stairGroup.children, true);
+function animate() {
+  const deltaTime = Math.min(0.05, clock.getDelta()) / STEPS_PER_FRAME;
 
-  if (intersects.length > 0) {
-    const distanceToGround = intersects[0].distance;
-    const groundHeight = intersects[0].point.y;
+  // we look for collisions in substeps to mitigate the risk of
+  // an object traversing another too quickly for detection.
 
-    // Ensure the player stands on top of the step
-    if (distanceToGround < stairDef.h + 1) {
-      camera.position.y = THREE.MathUtils.lerp(
-        camera.position.y,
-        groundHeight + stairDef.h / 2,
-        0.1,
-      );
-    }
+  for (let i = 0; i < STEPS_PER_FRAME; i++) {
+    controls(deltaTime);
+
+    updatePlayer(deltaTime);
+
+    teleportPlayerIfOob();
   }
 
-  updateMovement();
   switch (state) {
     case "up":
       if (endPos.clone().add(offset).distanceTo(camera.position) < 1) {
@@ -158,47 +300,7 @@ animate = function () {
       state = "up";
       break;
   }
-
   renderer.render(scene, camera);
-};
 
-let gravityState = 0;
-
-function rotateWorld(axis, angle) {
-  const quaternion = new THREE.Quaternion();
-  quaternion.setFromAxisAngle(axis, angle);
-  scene.applyQuaternion(quaternion);
-  camera.applyQuaternion(quaternion);
-  controls.object.applyQuaternion(camera.quaternion);
+  stats.update();
 }
-
-function changeGravity() {
-  gravityState = (gravityState + 1) % 4;
-
-  switch (gravityState) {
-    case 1:
-      rotateWorld(new THREE.Vector3(0, 1, 0), Math.PI / 2);
-      camera.position.add(stepV);
-      break;
-    case 2:
-      rotateWorld(new THREE.Vector3(0, 1, 0), Math.PI);
-      camera.position.add(stepV);
-      break;
-    case 3:
-      rotateWorld(new THREE.Vector3(0, 1, 0), (3 * Math.PI) / 2);
-      camera.position.add(stepV);
-      break;
-    default:
-      rotateWorld(new THREE.Vector3(0, 1, 0), (-gravityState * Math.PI) / 2);
-      camera.position.add(stepV);
-      break;
-  }
-}
-
-document.addEventListener("keydown", (event) => {
-  if (event.code === "KeyG") {
-    changeGravity();
-  }
-});
-
-animate();

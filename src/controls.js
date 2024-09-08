@@ -79,7 +79,7 @@ export function setupControls(camera, renderer) {
   const updateMovement = () => {
     const time = performance.now();
     const delta = (time - prevTime) / 1000; // Time passed between frames
-
+    const speed = 1600.0;
     velocity.x -= velocity.x * 10.0 * delta;
     velocity.z -= velocity.z * 10.0 * delta;
     velocity.y -= 9.8 * 100.0 * delta; // Gravity
@@ -88,8 +88,8 @@ export function setupControls(camera, renderer) {
     direction.x = Number(moveRight) - Number(moveLeft);
     direction.normalize(); // Consistent movement
 
-    if (moveForward || moveBackward) velocity.z -= direction.z * 1600.0 * delta;
-    if (moveLeft || moveRight) velocity.x -= direction.x * 1600.0 * delta;
+    if (moveForward || moveBackward) velocity.z -= direction.z * speed * delta;
+    if (moveLeft || moveRight) velocity.x -= direction.x * speed * delta;
 
     controls.moveRight(-velocity.x * delta);
     controls.moveForward(-velocity.z * delta);
