@@ -1,0 +1,26 @@
+newmtl blinn1SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd -mm 0 0.539936 Marmite.jpg
+bump Marmitebump.jpg -bm 1
+Ni 1.00
+Ks 0.00 0.00 0.00
+map_Ks -mm 0 0.421725 Marmitespecular.jpg
+newmtl lambert2SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd CNCR03L.JPG
+bump CNCR03LB.JPG -bm 1
+Ni 1.00
+newmtl lambert3SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd CNCR04L.JPG
+bump CNCR04LB.JPG -bm 1
+Ni 1.00

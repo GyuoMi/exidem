@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <link
+            rel="preload"
+            href="default.css"
+            as="style"
+            onload="this.rel='stylesheet'"
+        />
+        <noscript><link rel="stylesheet" href="default.css" /></noscript>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Stairwell Iliad</title>
+        <!-- Link to your CSS file -->
+
+        <!-- Import Map for Three.js -->
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "https://unpkg.com/three@0.168.0/build/three.module.js",
+                    "three/addons/": "https://unpkg.com/three@0.168.0/examples/jsm/"
+                }
+            }
+        </script>
+    </head>
+
+    <body>
+        <div id="canvasContainer"></div>
+
+        <script type="module" src="scripts/SceneManager.js"></script>
+        <script type="module" src="scripts/Player.js"></script>
+        <script type="module" src="scripts/ModelLoader.js"></script>
+        <script type="module" src="scripts/main.js"></script>
+    </body>
+</html>
