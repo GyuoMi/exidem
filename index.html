@@ -1,11 +1,17 @@
 <!doctype html>
 <html lang="en">
     <head>
+        <link
+            rel="preload"
+            href="default.css"
+            as="style"
+            onload="this.rel='stylesheet'"
+        />
+        <noscript><link rel="stylesheet" href="default.css" /></noscript>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Endless Staircase</title>
+        <title>Stairwell Iliad</title>
         <!-- Link to your CSS file -->
-        <link rel="stylesheet" href="default.css" />
 
         <!-- Import Map for Three.js -->
         <script type="importmap">
@@ -20,7 +26,10 @@
 
     <body>
         <div id="canvasContainer"></div>
-        <!-- <script src="three.js"></script> -->
-        <script type="module" src="stairs.js"></script>
+
+        <script type="module" src="scripts/SceneManager.js"></script>
+        <script type="module" src="scripts/Player.js"></script>
+        <script type="module" src="scripts/ModelLoader.js"></script>
+        <script type="module" src="scripts/main.js"></script>
     </body>
 </html>

@@ -7,20 +7,13 @@ import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 // model importing
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-let state, stackOfPos, startPos, endPos, drawFloor, stepLength, stepV;
 const container = document.getElementById("canvasContainer");
-const stairDef = { w: 20, l: 80, h: 20 };
-const offset = new THREE.Vector3(-50, 10, 150);
-state = "rotate";
-stackOfPos = [];
-startPos = new THREE.Vector3();
-endPos = new THREE.Vector3();
 
 const clock = new THREE.Clock();
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x88ccee);
-// scene.fog = new THREE.Fog(0x88ccee, 0, 50);
+// scene.background = new THREE.Color(0x88ccee);
+scene.fog = new THREE.Fog(0x222222, 10, 40);
 
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -82,10 +75,6 @@ let playerOnFloor = false;
 let mouseTime = 0;
 
 const keyStates = {};
-
-const vector1 = new THREE.Vector3();
-const vector2 = new THREE.Vector3();
-const vector3 = new THREE.Vector3();
 
 document.addEventListener("keydown", (event) => {
   keyStates[event.code] = true;
@@ -156,11 +145,12 @@ function updatePlayer(deltaTime) {
 
   // fake ground
   camera.position.copy(playerCollider.end);
-  if (camera.position.y < 10) {
+  if (camera.position.y < 10.1) {
     playerVelocity.y = 0;
-    camera.position.y = 10;
+    camera.position.y = 10.1;
   }
 }
+
 function getForwardVector() {
   camera.getWorldDirection(playerDirection);
   playerDirection.y = 0;
@@ -206,45 +196,12 @@ function controls(deltaTime) {
   }
 }
 
-const stairGroup = new THREE.Group();
-scene.add(stairGroup);
-
-drawFloor = function (orientation, startPos, numOfStairs = 25, isUp = true) {
-  let cube;
-  for (let i = 0; i < numOfStairs; i++) {
-    cube = new THREE.Mesh(
-      new THREE.BoxGeometry(stairDef.w, stairDef.h, stairDef.l),
-      new THREE.MeshLambertMaterial({ color: 0xff0000 }),
-    );
-    cube.position.copy(startPos);
-
-    switch (orientation) {
-      case "+x":
-        cube.position.x = startPos.x + stairDef.w * i;
-        break;
-      case "-x":
-        cube.position.x = startPos.x - stairDef.w * i;
-        break;
-      case "+z":
-        cube.position.z = startPos.z + stairDef.w * i;
-        break;
-      case "-z":
-        cube.position.z = startPos.z - stairDef.w * i;
-        break;
-    }
-
-    cube.position.y = isUp
-      ? startPos.y + stairDef.h * i
-      : startPos.y - stairDef.h * i;
-    stairGroup.add(cube);
-  }
-
-  return cube.position.clone();
-};
 const loader = new GLTFLoader();
 const textureLoader = new THREE.TextureLoader();
-const texture = textureLoader.load("/models/StairsLat/textures/CNCR04L.JPG");
-loader.load("/models/StairsLat/objStair.glb", (gltf) => {
+const texture = textureLoader.load(
+  "/assets/models/StairsLat/textures/CNCR04L.JPG",
+);
+loader.load("/assets/models/StairsLat/objStair.glb", (gltf) => {
   gltf.scene.scale.set(3, 3, 3);
   gltf.scene.position.y = 8.75;
   gltf.scene.position.z = -5;
@@ -264,7 +221,7 @@ loader.load("/models/StairsLat/objStair.glb", (gltf) => {
       map.magFilter = THREE.NearestFilter;
 
       if (child.material.map) {
-        child.material.map.anistropy = 4;
+        child.material.map.anistropy = 1;
       }
     }
   });
@@ -295,9 +252,12 @@ camera.position.copy(playerCollider.end);
 
 // Add initial downward velocity to simulate falling
 playerVelocity.set(0, -10, 0);
+
 function animate() {
   const deltaTime = Math.min(0.05, clock.getDelta()) / STEPS_PER_FRAME;
 
+  renderer.setSize(window.innerWidth / 2, window.innerHeight / 2, false);
+  renderer.domElement.style.imageRendering = "pixelated";
   // we look for collisions in substeps to mitigate the risk of
   // an object traversing another too quickly for detection.
 
@@ -309,32 +269,6 @@ function animate() {
     teleportPlayerIfOob();
   }
 
-  // switch (state) {
-  //   case "up":
-  //     if (endPos.clone().add(offset).distanceTo(camera.position) < 1) {
-  //       state = "rotate";
-  //     }
-  //     break;
-
-  //   case "rotate":
-  //     while (stackOfPos.length < 5) {
-  //       const lastPos =
-  //         stackOfPos.length > 0
-  //           ? stackOfPos[stackOfPos.length - 1]
-  //           : new THREE.Vector3(0, 0, 0);
-  //       const newPos = drawFloor("-x", lastPos, 25, true);
-  //       stackOfPos.push(newPos);
-  //     }
-  //     startPos = endPos.clone();
-  //     endPos = stackOfPos.shift();
-  //     stepV = endPos
-  //       .clone()
-  //       .add(offset)
-  //       .sub(camera.position)
-  //       .multiplyScalar(stepLength);
-  //     state = "up";
-  //     break;
-  // }
   renderer.render(scene, camera);
 
   stats.update();
