@@ -2,9 +2,9 @@ import * as THREE from "three";
 import Stats from "three/addons/libs/stats.module.js";
 
 export class SceneManager {
-  constructor(container) {
+  constructor(scene, container) {
     this.container = container;
-    this.scene = new THREE.Scene();
+    this.scene = scene;
     this.scene.fog = new THREE.Fog(0x222222, 10, 40);
     this.clock = new THREE.Clock();
 

@@ -37,6 +37,7 @@ export class Player {
       this.mouseTime = performance.now();
     });
 
+    // TODO: fix unlimited vertical look
     document.body.addEventListener("mousemove", (event) => {
       if (document.pointerLockElement === document.body) {
         this.camera.rotation.y -= event.movementX / 500;
@@ -59,7 +60,7 @@ export class Player {
         );
       }
 
-      if (result.depth >= 1e-10) {
+      if (result.depth >= 1e-11) {
         this.playerCollider.translate(
           result.normal.multiplyScalar(result.depth),
         );
@@ -83,10 +84,10 @@ export class Player {
     this.playerCollisions();
 
     this.camera.position.copy(this.playerCollider.end);
-    if (this.camera.position.y < 10.1) {
-      this.playerVelocity.y = 0;
-      this.camera.position.y = 10.1;
-    }
+    // if (this.camera.position.y < 10.1) {
+    //   this.playerVelocity.y = 0;
+    //   this.camera.position.y = 10.1;
+    // }
   }
 
   getForwardVector() {
@@ -124,7 +125,7 @@ export class Player {
       this.playerVelocity.add(this.getSideVector().multiplyScalar(speedDelta));
     }
 
-    if (this.playerOnFloor && this.keyStates["Space"]) {
+    if (/*this.playerOnFloor &&*/ this.keyStates["Space"]) {
       this.playerVelocity.y = 15;
     }
   }

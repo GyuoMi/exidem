@@ -13,15 +13,13 @@ export class ModelLoader {
     this.textureLoader = new TextureLoader();
   }
 
-  loadStairModel() {
+  loadStairModel(callback) {
     const texture = this.textureLoader.load(
       "/assets/models/StairsLat/textures/CNCR04L.JPG",
     );
 
     this.loader.load("/assets/models/StairsLat/objStair.glb", (gltf) => {
-      gltf.scene.scale.set(3, 3, 3);
-      gltf.scene.position.set(0, 8.75, -5);
-      gltf.scene.rotation.y = Math.PI;
+      gltf.scene.scale.set(3 * 1.51, 3, 3);
 
       gltf.scene.traverse((child) => {
         if (child.isMesh) {
@@ -49,6 +47,10 @@ export class ModelLoader {
       gui.add({ debug: false }, "debug").onChange(function (value) {
         helper.visible = value;
       });
+
+      if (callback) {
+        callback(gltf.scene); // Pass the loaded model to the callback
+      }
     });
   }
 }
