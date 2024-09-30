@@ -49,8 +49,12 @@ export class ModelLoader {
       });
 
       if (callback) {
-        callback(gltf.scene); // Pass the loaded model to the callback
+        callback(gltf.scene); 
       }
     });
   }
+
+  loadNotes(){
+    const texture = this.textureLoader.load();
+  } 
 }

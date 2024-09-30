@@ -4,6 +4,7 @@ import { ModelLoader } from "../scripts/ModelLoader.js";
 import { Player } from "../scripts/Player.js";
 import { SceneManager } from "../scripts/SceneManager.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { Inventory } from "../scripts/mechanics/Inventory.js"
 
 export default function loadLevel1(modelLoader, scene, worldOctree, player) {
   modelLoader.loadStairModel((stairModel) => {
@@ -44,4 +45,22 @@ export default function loadLevel1(modelLoader, scene, worldOctree, player) {
       currentPosition.y += 2.94;
     }
   });
+
+const playerInventory = new Inventory();
+document.addEventListener("keydown", (event) => {
+  if (event.key === "i") { 
+    playerInventory.toggle();
+  }
+});
+
+playerInventory.addItem({
+  name: "Ann's Note",
+  description: "This is the first note. It contains valuable information."
+});
+
+playerInventory.addItem({
+  name: "Key",
+  description: "A rusty old key. It looks like it might open a door."
+});
+
 }

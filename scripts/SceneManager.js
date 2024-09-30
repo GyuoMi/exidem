@@ -17,7 +17,6 @@ export class SceneManager {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.container.appendChild(this.renderer.domElement);
 
-    // Set up stats
     this.stats = new Stats();
     this.stats.domElement.style.position = "absolute";
     this.stats.domElement.style.top = "0px";
