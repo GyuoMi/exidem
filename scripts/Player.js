@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Capsule } from "three/addons/math/Capsule.js";
 
 export class Player {
-  constructor(worldOctree, camera, container) {
+  constructor(worldOctree, camera, container, listener) {
     this.GRAVITY = 60;
     this.STEPS_PER_FRAME = 5;
     this.worldOctree = worldOctree;
@@ -12,6 +12,7 @@ export class Player {
     this.keyStates = {};
     this.container = container;
     this.mouseTime = 0;
+    this.listener = listener;
     this.playerCollider = new Capsule(
       new THREE.Vector3(0, 0.35, 0),
       new THREE.Vector3(0, 1, 0),
@@ -19,7 +20,13 @@ export class Player {
     );
 
     this.playerOnFloor = false;
-
+    
+    this.doorCreak = new THREE.Audio(this.listener);
+    const audioLoader = new THREE.AudioLoader();
+    audioLoader.load('/assets/audio/door_creak.wav', (buffer) => {
+      this.doorCreak.setBuffer(buffer);
+      this.doorCreak.setVolume(0.05);
+    });
     this.initEventListeners();
   }
 
@@ -105,6 +112,7 @@ export class Player {
     return this.playerDirection;
   }
 
+  // TODO: fix wasd still working while pointer is locked
   controls(deltaTime) {
     const speedDelta = deltaTime * (this.playerOnFloor ? 25 : 8);
 
@@ -129,14 +137,28 @@ export class Player {
       this.playerVelocity.y = 15;
     }
   }
-
+//TODO: update with bounding box once there is collision with a door object
   teleportPlayerIfOob() {
-    if (this.camera.position.y <= -25) {
-      this.playerCollider.start.set(0, 0.35, 0);
-      this.playerCollider.end.set(0, 1, 0);
-      this.playerCollider.radius = 0.35;
-      this.camera.position.copy(this.playerCollider.end);
-      this.camera.rotation.set(0, 0, 0);
+    const playerPos = this.camera.position;
+    let teleported = false;
+    if (playerPos.y < 1.32) {
+        const newPos = new THREE.Vector3(playerPos.x, 12.19, playerPos.z);
+        this.playerCollider.start.add(newPos.clone().sub(playerPos));
+        this.playerCollider.end.add(newPos.clone().sub(playerPos));
+        this.camera.position.set(newPos.x, newPos.y, newPos.z);
+        teleported = true;
+    }
+    
+    if (playerPos.y > 12.3 && playerPos.z > -2.60) {
+        const newPos = new THREE.Vector3(playerPos.x, 1.58, playerPos.z-0.5);
+        this.playerCollider.start.add(newPos.clone().sub(playerPos));
+        this.playerCollider.end.add(newPos.clone().sub(playerPos));
+        this.camera.position.set(newPos.x, newPos.y, newPos.z);
+        teleported = true;
+    }
+
+    if (teleported && this.doorCreak.isPlaying === false) {
+      this.doorCreak.play();
     }
   }
 }
