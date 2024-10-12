@@ -12,5 +12,8 @@
   "description": "",
   "devDependencies": {
     "live-server": "^1.2.2"
+  },
+  "dependencies": {
+    "gltf-builder": "^0.7.1"
   }
 }

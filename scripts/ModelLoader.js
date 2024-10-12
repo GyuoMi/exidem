@@ -37,8 +37,6 @@ export class ModelLoader {
         }
       });
 
-      this.worldOctree.fromGraphNode(gltf.scene);
-      this.scene.add(gltf.scene);
       const helper = new OctreeHelper(this.worldOctree);
       helper.visible = false;
       this.scene.add(helper);
@@ -54,7 +52,62 @@ export class ModelLoader {
     });
   }
 
-  loadNotes(){
-    const texture = this.textureLoader.load();
-  } 
+  loadItem(itemType, callback){
+        const modelPaths = {
+      "paper_bag": "/assets/models/paper_bag/scene.gltf",
+      "small_radio": "/assets/models/radio/scene.gltf",
+      "note": "/assets/models/note/scene.gltf",
+      "key": "/assets/models/key/scene.gltf",
+      //"diary": "/assets/models/diary.gltf",
+      //"exit_sign": "/assets/models/exit_sign.gltf",
+      "cardboard_box": "/assets/models/cardboard_box/scene.gltf"
+      //"robbie_rabbit": "/assets/models/robbie_rabbit.gltf"
+    };
+
+    const modelPath = modelPaths[itemType];
+    //const scales = [];
+    if (modelPath) {
+      this.loader.load(modelPath, (gltf) => {
+        gltf.scene.scale.set(1, 1, 1); 
+
+        gltf.scene.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+
+        if (callback) {
+          callback(gltf.scene);
+        }
+      });
+    }
+  }
+
+  loadWall(type, callback) {
+    const texture = this.textureLoader.load("/assets/models/StairsLat/textures/CNCR03L.JPG");
+    
+    this.loader.load(`/assets/models/${type}.gltf`, (gltf) => {
+      gltf.scene.scale.set(1.5, 1.5, 1.2);
+      gltf.scene.traverse((child) => {
+        if(child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          child.material.map = texture;
+
+          const map = child.material.map;
+          map.wrapS = THREE.RepeatWrapping;
+          map.wrapT = THREE.RepeatWrapping;
+          map.repeat.set(4,4);
+          map.minFilter = THREE.LinearFilter;
+          map.magFilter = THREE.NearestFilter;
+          map.anisotropy = 1;
+        }
+      });
+
+      if (callback) {
+        callback(gltf.scene);
+      }
+    });
+  }
 }

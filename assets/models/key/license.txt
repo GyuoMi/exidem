@@ -1,0 +1,11 @@
+Model Information:
+* title:	Silent Hill 1 Meshes - Basement Key
+* source:	https://sketchfab.com/3d-models/silent-hill-1-meshes-basement-key-fa8ab061bfc64b5397de1c7304140e0f
+* author:	SilentQuest (https://sketchfab.com/SilentQuest)
+
+Model License:
+* license type:	CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+* requirements:	Author must be credited. No commercial use.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Silent Hill 1 Meshes - Basement Key" (https://sketchfab.com/3d-models/silent-hill-1-meshes-basement-key-fa8ab061bfc64b5397de1c7304140e0f) by SilentQuest (https://sketchfab.com/SilentQuest) licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)

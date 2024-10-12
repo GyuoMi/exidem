@@ -20,7 +20,7 @@ body {
     width: 100vw; /* Full viewport width */
     height: 100vh; /* Full viewport height */
     background-color: #eeeeee; /* Debug color */
-    /* image-rendering: pixelated; */
+    image-rendering: pixelated; 
 }
 
 #inventory {

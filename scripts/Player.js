@@ -27,6 +27,14 @@ export class Player {
       this.doorCreak.setBuffer(buffer);
       this.doorCreak.setVolume(0.05);
     });
+
+    const walkingSound = new THREE.Audio(listener);
+    audioLoader.load('/assets/audio/walking_stone.wav', function (buffer) {
+    walkingSound.setBuffer(buffer);
+    walkingSound.setLoop(true); 
+    walkingSound.setVolume(0.025); 
+});
+
     this.initEventListeners();
   }
 
@@ -91,10 +99,33 @@ export class Player {
     this.playerCollisions();
 
     this.camera.position.copy(this.playerCollider.end);
-    // if (this.camera.position.y < 10.1) {
-    //   this.playerVelocity.y = 0;
-    //   this.camera.position.y = 10.1;
-    // }
+    //fake floor
+    if (this.camera.position.y < 0) {
+      this.playerVelocity.y = 0;
+      this.camera.position.y = 0;
+    }
+  }
+  
+  walkingSfx(type) {
+    const spd = this.playerVelocity.length()
+    // Inside the Player's movement update logic
+    if (movementSpeed > 0.01) {
+      if (!walkingSound.isPlaying) {
+        walkingSound.play();
+      }
+      // Gradually increase the volume to avoid a jarring start
+      walkingSound.setVolume(Math.min(walkingSound.getVolume() + 0.05, 0.5));   // Fade in
+    } 
+    else {
+      if (walkingSound.isPlaying) {
+        // Gradually reduce the volume to avoid a jarring stop
+        walkingSound.setVolume(Math.max(walkingSound.getVolume() - 0.05, 0));
+        // Stop playing the sound completely when volume reaches 0
+        if (walkingSound.getVolume() <= 0) {
+          walkingSound.stop();
+        }
+      }
+    }
   }
 
   getForwardVector() {
@@ -139,26 +170,26 @@ export class Player {
   }
 //TODO: update with bounding box once there is collision with a door object
   teleportPlayerIfOob() {
-    const playerPos = this.camera.position;
-    let teleported = false;
-    if (playerPos.y < 1.32) {
-        const newPos = new THREE.Vector3(playerPos.x, 12.19, playerPos.z);
-        this.playerCollider.start.add(newPos.clone().sub(playerPos));
-        this.playerCollider.end.add(newPos.clone().sub(playerPos));
-        this.camera.position.set(newPos.x, newPos.y, newPos.z);
-        teleported = true;
-    }
-    
-    if (playerPos.y > 12.3 && playerPos.z > -2.60) {
-        const newPos = new THREE.Vector3(playerPos.x, 1.58, playerPos.z-0.5);
-        this.playerCollider.start.add(newPos.clone().sub(playerPos));
-        this.playerCollider.end.add(newPos.clone().sub(playerPos));
-        this.camera.position.set(newPos.x, newPos.y, newPos.z);
-        teleported = true;
-    }
-
-    if (teleported && this.doorCreak.isPlaying === false) {
-      this.doorCreak.play();
-    }
+    //const playerPos = this.camera.position;
+    //let teleported = false;
+    //if (playerPos.y < 1.32) {
+    //    const newPos = new THREE.Vector3(playerPos.x, 12.19, playerPos.z);
+    //    this.playerCollider.start.add(newPos.clone().sub(playerPos));
+    //    this.playerCollider.end.add(newPos.clone().sub(playerPos));
+    //    this.camera.position.set(newPos.x, newPos.y, newPos.z);
+    //    teleported = true;
+    //}
+    //
+    //if (playerPos.y > 12.3 && playerPos.z > -2.60) {
+    //    const newPos = new THREE.Vector3(playerPos.x, 1.58, playerPos.z-0.5);
+    //    this.playerCollider.start.add(newPos.clone().sub(playerPos));
+    //    this.playerCollider.end.add(newPos.clone().sub(playerPos));
+    //    this.camera.position.set(newPos.x, newPos.y, newPos.z);
+    //    teleported = true;
+    //}
+    //
+    //if (teleported && this.doorCreak.isPlaying === false) {
+    //  this.doorCreak.play();
+    //}
   }
 }

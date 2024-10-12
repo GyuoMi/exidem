@@ -1,0 +1,11 @@
+Model Information:
+* title:	Caixa no estilo de ps1
+* source:	https://sketchfab.com/3d-models/caixa-no-estilo-de-ps1-468eedea33ce4e67badf78f820a06511
+* author:	Moustache_Cat (https://sketchfab.com/moustachecat)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Caixa no estilo de ps1" (https://sketchfab.com/3d-models/caixa-no-estilo-de-ps1-468eedea33ce4e67badf78f820a06511) by Moustache_Cat (https://sketchfab.com/moustachecat) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
