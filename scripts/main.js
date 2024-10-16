@@ -3,6 +3,7 @@ import { SceneManager } from "./SceneManager.js";
 import { Player } from "./Player.js";
 import { ModelLoader } from "./ModelLoader.js";
 import { Octree } from "three/addons/math/Octree.js";
+import { Interactions } from "./mechanics/Interactions.js";
 import loadLevel1 from "../levels/level1.js";
 
 const container = document.getElementById("canvasContainer");
@@ -15,7 +16,7 @@ sceneManager.camera.add(listener);
 const worldOctree = new Octree();
 const player = new Player(worldOctree, sceneManager.camera, container, listener);
 const modelLoader = new ModelLoader(sceneManager.scene, worldOctree);
-
+const interactions  = new Interactions(scene, player, worldOctree); 
 
 const hud = document.getElementById('hud');
 
@@ -31,7 +32,7 @@ function updateHUD() {
 }
 
 // modelLoader.loadStairModel();
-loadLevel1(modelLoader, scene, worldOctree, player);
+loadLevel1(modelLoader, sceneManager.scene, worldOctree, player);
 
 player.playerCollider.start.set(0, 10, 0); // Starting above the model, adjust Y for height
 player.playerCollider.end.set(0, 10.65, 0);
@@ -43,8 +44,11 @@ function animate() {
     player.controls(deltaTime);
     player.update(deltaTime);
     player.teleportPlayerIfOob();
+    interactions.checkForInteractions();
     updateHUD();
   }
+
+
 
   sceneManager.render();
   sceneManager.updateStats();

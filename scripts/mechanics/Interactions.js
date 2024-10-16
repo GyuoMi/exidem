@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { ModelLoader } from "../ModelLoader.js";  
+import { buildTwistMaterial } from "../objects/shaderPatch.js";
 
 export class Interactions {
   constructor(scene, player, worldOctree) {
@@ -7,21 +8,12 @@ export class Interactions {
     this.player = player;
     this.worldOctree = worldOctree;
     this.modelLoader = new ModelLoader(scene, worldOctree);
-
+    
     this.items = [
-      "paper_bag", "small_radio", "note", "key", "diary", 
-      "exit_sign", "cardboard_box", "robbie_rabbit"
-    ];
-
-    this.itemLocations = [
-      new THREE.Vector3(-3.6, 2.55, 2.61),
-      new THREE.Vector3(3.82, 3.85, -0.47),
-      new THREE.Vector3(10.61, 5.49, 1.79),
-      //new THREE.Vector3(-3, 1, 0.5),
-      //new THREE.Vector3(2, 5, -1.5),
-      //new THREE.Vector3(-2, 4.5, 1),
-      //new THREE.Vector3(1.5, 6, -2),
-      //new THREE.Vector3(-0.5, 7.2, 1)
+      { type: "paper_bag", position: new THREE.Vector3(-6.6, 1.5, -0.8) },
+      //{ type: "note", position: new THREE.Vector3(3.82, 3.85, -0.47) },
+      //{ type: "key", position: new THREE.Vector3(10.61, 5.49, 1.79) },
+      { type: "cardboard_box", position: new THREE.Vector3(2.0, 6.0, -1.0) }
     ];
 
     this.activeItems = [];
@@ -33,55 +25,119 @@ export class Interactions {
   }
 
 initializeRandomItems() {
-    // Shuffle the item list and location list
-    const shuffledItems = this.items.sort(() => 0.5 - Math.random());
-    const shuffledLocations = this.itemLocations.sort(() => 0.5 - Math.random());
+    if (this.activeItems.length > 0){
+      console.warn("skipping dupes, already initialized");
+      return;
+    }
+    this.activeItems = this.items.slice(0, 2);
 
-    // Select two items and two locations
-    this.activeItems = shuffledItems.slice(0, 2);
-    this.activeLocations = shuffledLocations.slice(0, 2);
-
-    // Load and place the items in the scene
-    for (let i = 0; i < this.activeItems.length; i++) {
-        const itemType = this.activeItems[i];
-        const itemLocation = this.activeLocations[i];
-
-        this.modelLoader.loadItem(itemType, (itemModel) => {
-            // Set the position of the item model
-            itemModel.position.copy(itemLocation);
-            
-            // Add the item to the scene
+    for (const item of this.activeItems) {
+        this.modelLoader.loadItem(item.type, (itemModel) => {
+            itemModel.position.copy(item.position);
+            itemModel.name = item.type;
             this.scene.add(itemModel);
-            
-            // Log the loaded item's details to verify its loading and position
-            console.log(`Item loaded: ${itemType} at position (${itemLocation.x}, ${itemLocation.y}, ${itemLocation.z})`);
+            this.worldOctree.fromGraphNode(itemModel);
 
-            // Optionally visualize the bounding box
-            const boxHelper = new THREE.BoxHelper(itemModel, 0xffff00);
+            // Compute bounding box and scale it by 1.5x
+            const bbox = new THREE.Box3().setFromObject(itemModel);
+            
+            bbox.expandByScalar(1.5);
+            itemModel.userData.boundingBox = bbox;
+            itemModel.userData.type = item.type;
+
+            console.log(`Item loaded: ${item.type} with scaled bounding box at (${item.position.x}, ${item.position.y}, ${item.position.z})`);
+
+            // Optionally visualize the scaled bounding box
+            const boxHelper = new THREE.Box3Helper(bbox, 0xfff000); 
             this.scene.add(boxHelper);
         });
     }
 }
 
+checkForInteractions() {
+    let nearestItem = null;
+    let nearestDistance = Infinity;
+    const playerPosition = this.player.playerCollider.end.clone();
+
+    this.scene.traverse((object) => {
+        if (object.userData.boundingBox) {
+            const bbox = object.userData.boundingBox;
+            if (bbox.containsPoint(playerPosition)) {
+                // Calculate distance to determine the closest item
+                const distance = playerPosition.distanceTo(object.position);
+
+                if (distance < nearestDistance) {
+                    nearestDistance = distance;
+                    nearestItem = object;
+                }
+            }
+        }
+    });
+
+    if (nearestItem) {
+        this.showInteractionPrompt(nearestItem.userData.type);
+        if (this.isInteractKeyPressed()) {
+            this.interactWithItem(nearestItem.userData.type);
+        }
+    } else {
+        this.hideInteractionPrompt();
+    }
+}
+
+
+showInteractionPrompt(itemType) {
+    const interactionDiv = document.getElementById("interactionPrompt");
+    interactionDiv.style.display = "block";
+    interactionDiv.innerText = `Press F to interact with ${itemType}`;
+}
+
+hideInteractionPrompt() {
+    const interactionDiv = document.getElementById("interactionPrompt");
+    interactionDiv.style.display = "none";
+}
+
+isInteractKeyPressed() {
+  
+    let isPressed = false;
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'f' || event.key === 'F') {
+          console.log("interact pressed");
+            isPressed = true;
+        }
+    });
+    return isPressed;
+}
+
   // Call this method when player interacts with an item
   interactWithItem(itemType) {
     // Handle item-specific interactions
-    if (itemType === "paper_bag" || itemType === "small_radio" || itemType === "cardboard_box") {
-      // Play auditory story element
-      this.playAudio(itemType);
-    } else if (itemType === "note" || itemType === "key" || itemType === "diary") {
-      // Display written text
-      this.displayText(itemType);
-    } else if (itemType === "exit_sign") {
-      // Trigger special event logic for the exit sign
-      this.handleExitSign();
-    } else if (itemType === "robbie_rabbit") {
-      // Handle Robbie the Rabbit interaction
-      this.handleRobbieInteraction();
+    console.log("interacting");
+    if (itemType === "paper_bag") {
+        // Apply the twist effect to the paper bag model
+        const twistMaterial = buildTwistMaterial(4.0); // Adjust the speed by changing the amount
+        const paperBag = this.scene.getObjectByName("paper_bag");
+        if (paperBag) {
+            paperBag.material = twistMaterial;
+        }
+
+        this.playAudio(itemType);
     }
+    //if (itemType === "paper_bag" || itemType === "small_radio" || itemType === "cardboard_box") {
+    //  // Play auditory story element
+    //  this.playAudio(itemType);
+    //} else if (itemType === "note" || itemType === "key" || itemType === "diary") {
+    //  // Display written text
+    //  this.displayText(itemType);
+    //} else if (itemType === "exit_sign") {
+    //  // Trigger special event logic for the exit sign
+    //  this.handleExitSign();
+    //} else if (itemType === "robbie_rabbit") {
+    //  // Handle Robbie the Rabbit interaction
+    //  this.handleRobbieInteraction();
+    //}
 
     this.interactedItems++;
-
+    console.log(this.interactedItems);
     // Check if the level should end (all items interacted with)
     if (this.interactedItems >= 2) {
       this.endLevel();

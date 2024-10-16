@@ -52,37 +52,65 @@ export class ModelLoader {
     });
   }
 
-  loadItem(itemType, callback){
-        const modelPaths = {
-      "paper_bag": "/assets/models/paper_bag/scene.gltf",
-      "small_radio": "/assets/models/radio/scene.gltf",
-      "note": "/assets/models/note/scene.gltf",
-      "key": "/assets/models/key/scene.gltf",
-      //"diary": "/assets/models/diary.gltf",
-      //"exit_sign": "/assets/models/exit_sign.gltf",
-      "cardboard_box": "/assets/models/cardboard_box/scene.gltf"
-      //"robbie_rabbit": "/assets/models/robbie_rabbit.gltf"
+ loadItem(itemType, callback) {
+    const modelConfigs = {
+        "paper_bag": { 
+            path: "/assets/models/paper_bag/scene.gltf",
+            scale: 0.5,
+        },
+        "small_radio": { 
+            path: "/assets/models/radio/scene.gltf",
+            scale: 1,
+        },
+        "note": { 
+            path: "/assets/models/note/scene.gltf",
+            scale: 0.8,
+        },
+        "key": { 
+            path: "/assets/models/key/scene.gltf",
+            scale: 0.1,
+        },
+        //"diary": { 
+        //    path: "/assets/models/diary/scene.gltf",
+        //    scale: 0.2,
+        //},
+        //"exit_sign": { 
+        //    path: "/assets/models/exit_sign/scene.gltf",
+        //    scale: 0.3,
+        //},
+        "cardboard_box": { 
+            path: "/assets/models/cardboard_box/scene.gltf",
+            scale: 0.8,
+        },
+        //"robbie": { 
+        //    path: "/assets/models/robbie/scene.gltf",
+        //    scale: 0.3,
+        //},
     };
 
-    const modelPath = modelPaths[itemType];
-    //const scales = [];
-    if (modelPath) {
-      this.loader.load(modelPath, (gltf) => {
-        gltf.scene.scale.set(1, 1, 1); 
+    const config = modelConfigs[itemType];
+    if (config) {
+        this.loader.load(config.path, (gltf) => {
+            gltf.scene.scale.set(config.scale, config.scale, config.scale);
 
-        gltf.scene.traverse((child) => {
-          if (child.isMesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
-          }
+            gltf.scene.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+
+                    const map = child.material.map;
+                    map.minFilter = THREE.LinearFilter;
+                    map.magFilter = THREE.NearestFilter;
+                    map.anisotropy = 1;
+                }
+            });
+
+            if (callback) {
+                callback(gltf.scene);
+            }
         });
-
-        if (callback) {
-          callback(gltf.scene);
-        }
-      });
     }
-  }
+}
 
   loadWall(type, callback) {
     const texture = this.textureLoader.load("/assets/models/StairsLat/textures/CNCR03L.JPG");
