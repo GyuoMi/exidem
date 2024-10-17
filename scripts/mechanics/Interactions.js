@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { ModelLoader } from "../ModelLoader.js";  
 import { buildTwistMaterial } from "../objects/shaderPatch.js";
+import { Octree } from "three/addons/math/Octree.js";
 
 export class Interactions {
   constructor(scene, player, worldOctree) {
@@ -10,8 +11,8 @@ export class Interactions {
     this.modelLoader = new ModelLoader(scene, worldOctree);
     
     this.items = [
-      { type: "paper_bag", position: new THREE.Vector3(-6.6, 1.5, -0.8) },
-      { type: "note", position: new THREE.Vector3(10.65, 9.85, -12.33) },
+      //{ type: "paper_bag", position: new THREE.Vector3(-6.6, 1.5, -0.8) },
+      //{ type: "note", position: new THREE.Vector3(10.65, 9.85, -12.33) },
       { type: "key", position: new THREE.Vector3(10.61, 5.49, 1.79) },
       { type: "cardboard_box", position: new THREE.Vector3(3.64, 3.2, -0.18) },
       { type: "small_radio", position: new THREE.Vector3(-3.03, 11.24, -10.33) },
@@ -24,7 +25,20 @@ export class Interactions {
     this.interactedItems = 0;
     this.levelEnded = false;
 
-    this.initializeRandomItems();
+    this.FKeyPressed = false;
+
+    // Listen for keydown and keyup to track 'F' key state
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'f' || event.key === 'F') {
+            this.isFKeyPressed = true;
+        }
+    });
+
+    document.addEventListener('keyup', (event) => {
+        if (event.key === 'f' || event.key === 'F') {
+            this.isFKeyPressed = false;
+        }
+    });
   }
 
 initializeRandomItems() {
@@ -32,7 +46,7 @@ initializeRandomItems() {
       console.warn("skipping dupes, already initialized");
       return;
     }
-    this.activeItems = this.items.slice(0, 2);
+    this.activeItems = this.items.sort(() => 0.5 - Math.random()).slice(0, 2);
     this.modelLoader.loadItem(this.exit.type, (exitModel) => {
         exitModel.position.copy(this.exit.position);
         this.exitDir = !this.exitDir;
@@ -47,7 +61,7 @@ initializeRandomItems() {
             itemModel.position.copy(item.position);
             itemModel.name = item.type;
             this.scene.add(itemModel);
-            this.worldOctree.fromGraphNode(itemModel);
+            //this.worldOctree.fromGraphNode(itemModel);
 
             // Compute bounding box and scale it by 1.5x
             const bbox = new THREE.Box3().setFromObject(itemModel);
@@ -69,7 +83,6 @@ checkForInteractions() {
     let nearestItem = null;
     let nearestDistance = Infinity;
     const playerPosition = this.player.playerCollider.end.clone();
-
     this.scene.traverse((object) => {
         if (object.userData.boundingBox) {
             const bbox = object.userData.boundingBox;
@@ -80,6 +93,7 @@ checkForInteractions() {
                 if (distance < nearestDistance) {
                     nearestDistance = distance;
                     nearestItem = object;
+
                 }
             }
         }
@@ -89,6 +103,7 @@ checkForInteractions() {
         this.showInteractionPrompt(nearestItem.userData.type);
         if (this.isInteractKeyPressed()) {
             this.interactWithItem(nearestItem.userData.type);
+            this.scene.remove(nearestItem);
         }
     } else {
         this.hideInteractionPrompt();
@@ -99,6 +114,7 @@ checkForInteractions() {
 showInteractionPrompt(itemType) {
     const interactionDiv = document.getElementById("interactionPrompt");
     interactionDiv.style.display = "block";
+    // TODO: fix text display so it's not like paper_bag but rather Paper Bag
     interactionDiv.innerText = `Press F to interact with ${itemType}`;
 }
 
@@ -108,15 +124,7 @@ hideInteractionPrompt() {
 }
 
 isInteractKeyPressed() {
-  
-    let isPressed = false;
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'f' || event.key === 'F') {
-          console.log("interact pressed");
-            isPressed = true;
-        }
-    });
-    return isPressed;
+  return this.isFKeyPressed;
 }
 
   // Call this method when player interacts with an item
@@ -124,25 +132,25 @@ isInteractKeyPressed() {
     // Handle item-specific interactions
     console.log("interacting");
     if (itemType === "paper_bag") {
-        // Apply the twist effect to the paper bag model
-        const twistMaterial = buildTwistMaterial(4.0); // Adjust the speed by changing the amount
-        const paperBag = this.scene.getObjectByName("paper_bag");
-        if (paperBag) {
-            paperBag.material = twistMaterial;
-        }
+        // TODO: shader twist effect
+        //// Apply the twist effect to the paper bag model
+        //const twistMaterial = buildTwistMaterial(4.0); // Adjust the speed by changing the amount
+        //const paperBag = this.scene.getObjectByName("paper_bag");
+        //if (paperBag) {
+        //    paperBag.material = twistMaterial;
+        //}
 
         this.playAudio(itemType);
     }
-    //if (itemType === "paper_bag" || itemType === "small_radio" || itemType === "cardboard_box") {
-    //  // Play auditory story element
-    //  this.playAudio(itemType);
-    //} else if (itemType === "note" || itemType === "key" || itemType === "diary") {
-    //  // Display written text
-    //  this.displayText(itemType);
-    //} else if (itemType === "exit_sign") {
-    //  // Trigger special event logic for the exit sign
-    //  this.handleExitSign();
-    //} else if (itemType === "robbie_rabbit") {
+    if (itemType === "paper_bag" || itemType === "small_radio" || itemType === "cardboard_box") {
+      // Play auditory story element
+      this.playAudio(itemType);
+    }// TODO: diary check
+    else if (itemType === "note" || itemType === "key") {
+      // Display written text
+      this.displayText(itemType);
+    }
+    //else if (itemType === "robbie_rabbit") {
     //  // Handle Robbie the Rabbit interaction
     //  this.handleRobbieInteraction();
     //}
@@ -178,7 +186,19 @@ isInteractKeyPressed() {
   endLevel() {
     console.log("Level completed.");
     this.levelEnded = true;
-    // Additional logic for ending the level can go here
+    // Clear old items from the scene
+    this.activeItems.forEach((item) => {
+      const sceneItem = this.scene.getObjectByName(item.type);
+      if (sceneItem) {
+        this.scene.remove(sceneItem);
+        // placeholder remove octree, or rebuild? idk performance hit
+      }
+    });
+
+    // Reset for next level
+    this.interactedItems = 0;
+    this.levelEnded = false;
+    //this.initializeRandomItems();
   }
 }
 

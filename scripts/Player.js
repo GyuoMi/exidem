@@ -7,6 +7,7 @@ export class Player {
     this.STEPS_PER_FRAME = 5;
     this.worldOctree = worldOctree;
     this.camera = camera;
+    this.interactions = null;
     this.playerVelocity = new THREE.Vector3();
     this.playerDirection = new THREE.Vector3();
     this.keyStates = {};
@@ -35,6 +36,12 @@ export class Player {
 });
 
     this.initEventListeners();
+  }
+  
+  setInteractions(interactions){
+    // used to pull in interactions that is created after player in main.js
+    // kinda hacky but fuck it
+    this.interactions = interactions;
   }
 
   initEventListeners() {
@@ -173,28 +180,40 @@ export class Player {
     }
   }
 //TODO: update with bounding box once there is collision with a door object
+// Ensure this.doorCreak is properly set as an audio object
   teleportPlayerIfOob() {
-    //const playerPos = this.camera.position;
-    //let teleported = false;
-    // // bottom exit
-    //if (playerPos.y < 1.32) {
-    //    const newPos = new THREE.Vector3(playerPos.x, 12.19, playerPos.z);
-    //    this.playerCollider.start.add(newPos.clone().sub(playerPos));
-    //    this.playerCollider.end.add(newPos.clone().sub(playerPos));
-    //    this.camera.position.set(newPos.x, newPos.y, newPos.z);
-    //    teleported = true;
-    //}
-    // // top exit
-    //if (playerPos.y > 12.3 && playerPos.z > -2.60) {
-    //    const newPos = new THREE.Vector3(playerPos.x, 1.58, playerPos.z-0.5);
-    //    this.playerCollider.start.add(newPos.clone().sub(playerPos));
-    //    this.playerCollider.end.add(newPos.clone().sub(playerPos));
-    //    this.camera.position.set(newPos.x, newPos.y, newPos.z);
-    //    teleported = true;
-    //}
-    //
-    //if (teleported && this.doorCreak.isPlaying === false) {
-    //  this.doorCreak.play();
-    //}
+    const playerPos = this.camera.position;
+    let teleported = false;
+
+    // Only allow teleport if level is complete
+    if (!this.interactions.levelEnded) return;
+
+    console.log("telelported");
+    // Correct exit conditions
+    if ((playerPos.y < 1.32 && this.interactions.exitDir === 1) || 
+        (playerPos.y > 12.3 && playerPos.z > -2.60 && this.interactions.exitDir === 0)) {
+      const newPos = this.interactions.exitDir === 1 ? 
+          new THREE.Vector3(playerPos.x, 12.19, playerPos.z) : 
+          new THREE.Vector3(playerPos.x, 1.58, playerPos.z - 0.5);
+
+      this.playerCollider.start.add(newPos.clone().sub(playerPos));
+      this.playerCollider.end.add(newPos.clone().sub(playerPos));
+      this.camera.position.set(newPos.x, newPos.y, newPos.z);
+      teleported = true;
+    } else {
+      // Wrong exit logic, reduce lives
+      if (this.interactions.lives > 0) {
+        this.interactions.lives--;
+        this.interactions.updateLivesDisplay();
+        if (this.interactions.lives === 0) {
+          console.log("Game Over");
+          // Game over logic here
+        }
+      }
+    }
+
+    if (teleported && this.doorCreak.isPlaying === false) {
+      this.doorCreak.play();
+    }
   }
 }

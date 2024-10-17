@@ -16,8 +16,8 @@ sceneManager.camera.add(listener);
 const worldOctree = new Octree();
 const player = new Player(worldOctree, sceneManager.camera, container, listener);
 const modelLoader = new ModelLoader(sceneManager.scene, worldOctree);
-const interactions  = new Interactions(scene, player, worldOctree); 
-
+const interactions = new Interactions(scene, player, worldOctree); 
+player.setInteractions(interactions);
 const hud = document.getElementById('hud');
 
 // Inside your animate or game loop
@@ -34,7 +34,7 @@ function updateHUD() {
 // modelLoader.loadStairModel();
 loadLevel1(modelLoader, sceneManager.scene, worldOctree, player);
 
-player.playerCollider.start.set(0, 10, 0); // Starting above the model, adjust Y for height
+player.playerCollider.start.set(0, 10, 0);
 player.playerCollider.end.set(0, 10.65, 0);
 function animate() {
   const deltaTime =

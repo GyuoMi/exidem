@@ -37,15 +37,6 @@ export class ModelLoader {
         }
       });
 
-      const helper = new OctreeHelper(this.worldOctree);
-      helper.visible = false;
-      this.scene.add(helper);
-
-      const gui = new GUI({ width: 200 });
-      gui.add({ debug: false }, "debug").onChange(function (value) {
-        helper.visible = value;
-      });
-
       if (callback) {
         callback(gltf.scene); 
       }
