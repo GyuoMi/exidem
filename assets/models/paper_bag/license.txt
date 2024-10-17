@@ -1,0 +1,11 @@
+Model Information:
+* title:	Paper Bag Scan MEDPOLY
+* source:	https://sketchfab.com/3d-models/paper-bag-scan-medpoly-9a62b0f87a1a4a2caacbe798f169c414
+* author:	EvanLegrand (https://sketchfab.com/evan4129)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Paper Bag Scan MEDPOLY" (https://sketchfab.com/3d-models/paper-bag-scan-medpoly-9a62b0f87a1a4a2caacbe798f169c414) by EvanLegrand (https://sketchfab.com/evan4129) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
