@@ -14,11 +14,10 @@ export class Player {
     this.mouseTime = 0;
     this.listener = listener;
     this.playerCollider = new Capsule(
-      new THREE.Vector3(0, 0.35, 0),
-      new THREE.Vector3(0, 1, 0),
-      0.35,
+      new THREE.Vector3(0, 2, 0),
+      new THREE.Vector3(0, 2, 0),
+      0.4,
     );
-
     this.playerOnFloor = false;
     
     this.doorCreak = new THREE.Audio(this.listener);
@@ -53,10 +52,13 @@ export class Player {
     });
 
     // TODO: fix unlimited vertical look
+    const MIN_PITCH = -Math.PI / 2; 
+    const MAX_PITCH = Math.PI / 2; 
     document.body.addEventListener("mousemove", (event) => {
       if (document.pointerLockElement === document.body) {
         this.camera.rotation.y -= event.movementX / 500;
         this.camera.rotation.x -= event.movementY / 500;
+        this.camera.rotation.x = Math.max(MIN_PITCH, Math.min(MAX_PITCH, this.camera.rotation.x));
       }
     });
   }
@@ -98,7 +100,8 @@ export class Player {
 
     this.playerCollisions();
 
-    this.camera.position.copy(this.playerCollider.end);
+    const cameraOffset = new THREE.Vector3(0,2.0,0);
+    this.camera.position.copy(this.playerCollider.end).add(cameraOffset);
     //fake floor
     if (this.camera.position.y < 0) {
       this.playerVelocity.y = 0;
@@ -145,7 +148,8 @@ export class Player {
 
   // TODO: fix wasd still working while pointer is locked
   controls(deltaTime) {
-    const speedDelta = deltaTime * (this.playerOnFloor ? 25 : 8);
+    //const speedDelta = deltaTime * (this.playerOnFloor ? 25 : 8);
+    const speedDelta = deltaTime * (this.playerOnFloor ? 15 : 8);
 
     if (this.keyStates["KeyW"]) {
       this.playerVelocity.add(
@@ -172,6 +176,7 @@ export class Player {
   teleportPlayerIfOob() {
     //const playerPos = this.camera.position;
     //let teleported = false;
+    // // bottom exit
     //if (playerPos.y < 1.32) {
     //    const newPos = new THREE.Vector3(playerPos.x, 12.19, playerPos.z);
     //    this.playerCollider.start.add(newPos.clone().sub(playerPos));
@@ -179,7 +184,7 @@ export class Player {
     //    this.camera.position.set(newPos.x, newPos.y, newPos.z);
     //    teleported = true;
     //}
-    //
+    // // top exit
     //if (playerPos.y > 12.3 && playerPos.z > -2.60) {
     //    const newPos = new THREE.Vector3(playerPos.x, 1.58, playerPos.z-0.5);
     //    this.playerCollider.start.add(newPos.clone().sub(playerPos));

@@ -60,11 +60,11 @@ export class ModelLoader {
         },
         "small_radio": { 
             path: "/assets/models/radio/scene.gltf",
-            scale: 1,
+            scale: 4,
         },
         "note": { 
             path: "/assets/models/note/scene.gltf",
-            scale: 0.8,
+            scale: 2.3,
         },
         "key": { 
             path: "/assets/models/key/scene.gltf",
@@ -74,13 +74,13 @@ export class ModelLoader {
         //    path: "/assets/models/diary/scene.gltf",
         //    scale: 0.2,
         //},
-        //"exit_sign": { 
-        //    path: "/assets/models/exit_sign/scene.gltf",
-        //    scale: 0.3,
-        //},
+        "exit_sign": { 
+            path: "/assets/models/exit_sign/scene.gltf",
+            scale: 0.05,
+        },
         "cardboard_box": { 
             path: "/assets/models/cardboard_box/scene.gltf",
-            scale: 0.8,
+            scale: 0.5,
         },
         //"robbie": { 
         //    path: "/assets/models/robbie/scene.gltf",
@@ -116,7 +116,7 @@ export class ModelLoader {
     const texture = this.textureLoader.load("/assets/models/StairsLat/textures/CNCR03L.JPG");
     
     this.loader.load(`/assets/models/${type}.gltf`, (gltf) => {
-      gltf.scene.scale.set(1.5, 1.5, 1.2);
+      gltf.scene.scale.set(1.5, 1.7, 1.2);
       gltf.scene.traverse((child) => {
         if(child.isMesh) {
           child.castShadow = true;

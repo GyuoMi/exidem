@@ -8,7 +8,7 @@ import { Inventory } from "../scripts/mechanics/Inventory.js"
 import { Interactions } from "../scripts/mechanics/Interactions.js";
 
 export default function loadLevel1(modelLoader, scene, worldOctree, player) {
-  const interactions  = new Interactions(scene, player, worldOctree);
+  const interactions = new Interactions(scene, player, worldOctree);
 
   modelLoader.loadStairModel((stairModel) => {
     let currentPosition = new THREE.Vector3(0, 0, 0); 

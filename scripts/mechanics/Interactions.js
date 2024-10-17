@@ -11,11 +11,14 @@ export class Interactions {
     
     this.items = [
       { type: "paper_bag", position: new THREE.Vector3(-6.6, 1.5, -0.8) },
-      //{ type: "note", position: new THREE.Vector3(3.82, 3.85, -0.47) },
-      //{ type: "key", position: new THREE.Vector3(10.61, 5.49, 1.79) },
-      { type: "cardboard_box", position: new THREE.Vector3(2.0, 6.0, -1.0) }
+      { type: "note", position: new THREE.Vector3(10.65, 9.85, -12.33) },
+      { type: "key", position: new THREE.Vector3(10.61, 5.49, 1.79) },
+      { type: "cardboard_box", position: new THREE.Vector3(3.64, 3.2, -0.18) },
+      { type: "small_radio", position: new THREE.Vector3(-3.03, 11.24, -10.33) },
     ];
 
+    this.exit = { type: "exit_sign", position: new THREE.Vector3(10.61, 5.49, 1.79) };
+    this.exitDir = 1;
     this.activeItems = [];
     this.activeLocations = [];
     this.interactedItems = 0;
@@ -30,7 +33,15 @@ initializeRandomItems() {
       return;
     }
     this.activeItems = this.items.slice(0, 2);
-
+    this.modelLoader.loadItem(this.exit.type, (exitModel) => {
+        exitModel.position.copy(this.exit.position);
+        this.exitDir = !this.exitDir;
+        if (this.exitDir === 1){
+          exitModel.rotation.y = Math.PI;
+        }
+        //this.worldOctree.fromGraphNode(exitModel);
+        this.scene.add(exitModel);
+    });
     for (const item of this.activeItems) {
         this.modelLoader.loadItem(item.type, (itemModel) => {
             itemModel.position.copy(item.position);
