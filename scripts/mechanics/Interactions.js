@@ -46,7 +46,16 @@ export class Interactions {
     });
 
     this.playerInventory = new Inventory();
+    this.loadAllAudio();
   }
+
+loadAllAudio() {
+  this.sounds.loadAudio("paper_bag", "/assets/audio/paper_bag.mp3");
+  this.sounds.loadAudio("small_radio", "/assets/audio/radio.mp3");
+  this.sounds.loadAudio("cardboard_box", "/assets/audio/box.mp3");
+  this.sounds.loadAudio("game_over", "/assets/audio/look_behind.wav");
+  this.sounds.loadAudio("respawn", "/assets/audio/respawn.mp3");
+}
 
 initializeRandomItems() {
     this.levelEnded = false;
@@ -58,11 +67,12 @@ initializeRandomItems() {
     //}
     this.activeItems = this.items.sort(() => 0.5 - Math.random()).slice(0, 2);
     this.modelLoader.loadItem(this.exit.type, (exitModel) => {
-        this.exitDir = !this.exitDir;
-      this.exitDir = true;
-        console.log("exit:", this.exitDir === true ? "up" : this.exitDir === false ? "down" : this.exitDir);
-        // logic is the sign points up when rotated, and points down by default
-        if (this.exitDir){
+        //this.exitDir = !this.exitDir;
+        this.exitDir = 1;
+        console.log("exit:", this.exitDir === 1 ? "up" : this.exitDir === 0 ? "down" : this.exitDir);
+        // logic is the sign points down when rotated, and points up by default
+        if (!this.exitDir){ // but then will be false here so it doesn't rotate
+          console.log("rotated");
           exitModel.rotation.y = Math.PI;
         }
         exitModel.position.copy(this.exit.position);
@@ -117,8 +127,8 @@ checkForInteractions() {
         this.showInteractionPrompt(nearestItem.userData.type);
         //const pickups = ["diary", "note", "key"];
         if (this.isInteractKeyPressed()) {
-            this.interactWithItem(nearestItem.userData.type);
-            this.scene.remove(nearestItem);
+            this.interactWithItem(nearestItem);
+            //this.scene.remove(nearestItem);
         }
     } else {
         this.hideInteractionPrompt();
@@ -142,52 +152,26 @@ isInteractKeyPressed() {
   return this.isFKeyPressed;
 }
 
+  interactWithItem(itemObject) {
+    const itemType = itemObject.userData.type;
+    console.log("Interacting with:", itemType);
 
+    // Play associated audio
+    this.sounds.playAudio(itemType);
 
-  // Call this method when player interacts with an item
-  interactWithItem(itemType) {
-    // Handle item-specific interactions
-    console.log("interacting");
-    if (itemType === "paper_bag") {
-        // TODO: shader twist effect
-        //// Apply the twist effect to the paper bag model
-        //const twistMaterial = buildTwistMaterial(4.0); // Adjust the speed by changing the amount
-        //const paperBag = this.scene.getObjectByName("paper_bag");
-        //if (paperBag) {
-        //    paperBag.material = twistMaterial;
-        //}
-
-        this.playAudio(itemType);
+    // Handle interactions and remove or keep the item
+    if (itemType === "note" || itemType === "key") {
+      this.playerInventory.addItem({
+        name: itemType === "note" ? "Mysterious Note" : "Rusty Key",
+        description: itemType === "note" ? "A note with cryptic writing. It might hold a clue." : "An old key. Perhaps it opens a hidden door somewhere."
+      });
+      this.scene.remove(itemObject);
+    } else {
+      // For items like paper bag, radio, and box, we play audio but do not remove them
+      console.log(`${itemType} interaction completed, but item not removed.`);
     }
-    if (itemType === "paper_bag" || itemType === "small_radio" || itemType === "cardboard_box") {
-      // Play auditory story element
-      this.playAudio(itemType);
-    }// TODO: diary check
-    else if (itemType === "note" || itemType === "key") {
-
-      if (itemType === "note") {
-        this.playerInventory.addItem({
-          name: "Mysterious Note",
-          description: "A note with cryptic writing. It might hold a clue."
-        });
-      } 
-      if (itemType === "key") {
-        this.playerInventory.addItem({
-          name: "Rusty Key",
-          description: "An old key. Perhaps it opens a hidden door somewhere."
-        });
-      }
-
-      this.displayText(itemType);
-    }
-    //else if (itemType === "robbie_rabbit") {
-    //  // Handle Robbie the Rabbit interaction
-    //  this.handleRobbieInteraction();
-    //}
 
     this.interactedItems++;
-    console.log(this.interactedItems);
-    // Check if the level should end (all items interacted with)
     if (this.interactedItems >= 2) {
       this.endLevel();
     }
@@ -237,7 +221,6 @@ isInteractKeyPressed() {
     console.log(this.lives)
     // Update the visual representation of lives
     const currentLives = this.lifeContainer.children;
-    this.sounds.loadAudio("respawn", "/assets/audio/respawn.mp3");
     // Ensure that we don't go out of bounds
     if (this.lives >= 0 && this.lives < currentLives.length) {
         // Add the 'transparent' class to the current life being lost

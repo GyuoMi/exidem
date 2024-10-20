@@ -126,6 +126,7 @@ export class Player {
 
     const cameraOffset = new THREE.Vector3(0,2.0,0);
     this.camera.position.copy(this.playerCollider.end).add(cameraOffset);
+
     this.teleportPlayerIfOob();
     //fake floor
     if (this.camera.position.y < 0) {
@@ -207,51 +208,48 @@ export class Player {
     }
   }
 //TODO: update with bounding box once there is collision with a door object
-  teleportPlayerIfOob() {
-    const playerPos = this.camera.position;
-    let teleported = false;
+   teleportPlayerIfOob() {
+      const playerPos = this.camera.position;
+      let teleported = false;
 
-    // Only allow teleport if level is complete
-    //if (!this.interactions.levelEnded) return;
+      // Check for wrong exit first to trigger life loss
+      if ((playerPos.y < 1.32 && this.interactions.exitDir === 1) || (playerPos.y > 12.3 && playerPos.z > -2.60 && this.interactions.exitDir === 0)){
+        // Wrong exit, deduct a life if level ended and life hasn't been lost yet
+        console.log("wrong exit");
+        if (this.interactions.levelEnded && !this.lifeLost) {
+          this.interactions.updateLives();
+          this.lifeLost = true;
+          teleported = true;
+        }
+        const newPos = this.interactions.exitDir === 1 ? 
+            new THREE.Vector3(playerPos.x, 13.0, playerPos.z) : 
+            new THREE.Vector3(playerPos.x, 3.58, playerPos.z - 0.5);
 
-    // Correct exit conditions
-    if ((playerPos.y < 1.32) || 
-        (playerPos.y > 12.3 && playerPos.z > -2.60)) {
-      const newPos = playerPos.y < 1.32 
-          ? new THREE.Vector3(playerPos.x, 13.0, playerPos.z) 
-          : new THREE.Vector3(playerPos.x, 3.58, playerPos.z - 0.5);
+        this.playerCollider.start.add(newPos.clone().sub(playerPos));
+        this.playerCollider.end.add(newPos.clone().sub(playerPos));
+        this.camera.position.set(newPos.x, newPos.y, newPos.z);
+      } 
+      // Correct exit handling
+      else if ((playerPos.y < 1.32) || 
+               (playerPos.y > 12.3 && playerPos.z > -2.60)) {
+        console.log("correct exit")
+        const newPos = playerPos.y < 1.32 
+            ? new THREE.Vector3(playerPos.x, 13.0, playerPos.z) 
+            : new THREE.Vector3(playerPos.x, 3.58, playerPos.z - 0.5);
 
-
-      this.playerCollider.start.add(newPos.clone().sub(playerPos));
-      this.playerCollider.end.add(newPos.clone().sub(playerPos));
-      this.camera.position.set(newPos.x, newPos.y, newPos.z);
-      teleported = true;
-    } 
-    else if ((playerPos.y < 1.32 && this.interactions.exitDir === 1) || 
-        (playerPos.y > 12.3 && playerPos.z > -2.60 && this.interactions.exitDir === 0)){
-      // wrong exit 
-      if (this.interactions.levelEnded && !this.lifeLost){
-        // flag so it doesn't repeatedly tick down lives
-        this.interactions.updateLives();
-        this.lifeLost = true;
+        this.playerCollider.start.add(newPos.clone().sub(playerPos));
+        this.playerCollider.end.add(newPos.clone().sub(playerPos));
+        this.camera.position.set(newPos.x, newPos.y, newPos.z);
         teleported = true;
       }
-      const newPos = this.interactions.exitDir === 1 ? 
-          new THREE.Vector3(playerPos.x, 13.0, playerPos.z) : 
-          new THREE.Vector3(playerPos.x, 3.58, playerPos.z - 0.5);
-
-      this.playerCollider.start.add(newPos.clone().sub(playerPos));
-      this.playerCollider.end.add(newPos.clone().sub(playerPos));
-      this.camera.position.set(newPos.x, newPos.y, newPos.z);
-    }
-    
-    if (this.interactions.levelEnded && teleported && !this.doorCreak.isPlaying ) {
-      // could add lifelost here just so someone doesn't keep losing lives on the same level??
-      if (!this.lifeLost){
-        this.doorCreak.play();
-        this.interactions.initializeRandomItems();
+      
+      // Reset for next level
+      if (this.interactions.levelEnded && teleported && !this.doorCreak.isPlaying ) {
+        if (!this.lifeLost){
+          this.doorCreak.play();
+          this.interactions.initializeRandomItems();
+        }
+        this.lifeLost = false;
       }
-      this.lifeLost = false;
-    }
   }
 }

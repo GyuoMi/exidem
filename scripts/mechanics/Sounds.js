@@ -46,7 +46,7 @@ export class Sounds {
           sound.setBuffer(buffer);
           sound.setRefDistance(20); // Set the distance at which the sound starts to fade
           sound.setVolume(0.25); // Adjust volume if needed
-          sound.setLoop(true);
+          sound.setLoop(false);
           this.activeSounds[name] = sound;
 
           if (onLoad) {
