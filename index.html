@@ -3,44 +3,23 @@
     <head>
         <link
             rel="preload"
-            href="default.css"
+            href="game.css"
             as="style"
             onload="this.rel='stylesheet'"
         />
-        <noscript><link rel="stylesheet" href="default.css" /></noscript>
+        <noscript><link rel="stylesheet" href="game.css" /></noscript>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Stairwell Iliad</title>
         <!-- Link to your CSS file -->
 
-        <div id="livesDisplay">
-  <div class="life-circle" id="life1"></div>
-  <div class="life-circle" id="life2"></div>
-  <div class="life-circle" id="life3"></div>
-</div>
-<style>
-  #livesDisplay {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    display: flex;
-    justify-content: space-between;
-    width: 50px;
-  }
-
-  .life-circle {
-    width: 10px;
-    height: 10px;
-    background-color: red;
-    border-radius: 50%;
-    margin: 2px;
-  }
-
-  .lost-life {
-    background-color: black;
-  }
-</style>
-
+        <div id="life-container">
+          <div class="life" id="life1"></div>
+          <div class="life" id="life2"></div>
+          <div class="life" id="life3"></div>
+        </div>
+        
+        
         <div id="inventory" style="display: none;"> <div
             id="status">Status</div> <div id="equipment">Equipment</div> <div
             id="command">Command</div>

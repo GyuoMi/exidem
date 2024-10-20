@@ -19,7 +19,6 @@ const modelLoader = new ModelLoader(sceneManager.scene, worldOctree);
 const interactions = new Interactions(scene, player, worldOctree); 
 player.setInteractions(interactions);
 const hud = document.getElementById('hud');
-
 // Inside your animate or game loop
 function updateHUD() {
   const playerPosition = player.camera.position;  
@@ -41,9 +40,9 @@ function animate() {
     Math.min(0.05, sceneManager.clock.getDelta()) / player.STEPS_PER_FRAME;
 
   for (let i = 0; i < player.STEPS_PER_FRAME; i++) {
+    // TODO: remove controls call here, it's just an easier speedboost lol
     player.controls(deltaTime);
     player.update(deltaTime);
-    player.teleportPlayerIfOob();
     interactions.checkForInteractions();
     updateHUD();
   }

@@ -1,0 +1,19 @@
+body {
+    background: black;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* Hide scrollbars */
+}
+
+#canvasContainer {
+    border: none;
+    cursor: pointer;
+    width: 100vw; /* Full viewport width */
+    height: 100vh; /* Full viewport height */
+}
+
