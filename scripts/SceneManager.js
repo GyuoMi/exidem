@@ -5,7 +5,7 @@ export class SceneManager {
   constructor(scene, container) {
     this.container = container;
     this.scene = scene;
-    this.scene.fog = new THREE.Fog(0x222222, 10, 40);
+    this.scene.fog = new THREE.Fog(0x222222, 10, 40); 
     this.clock = new THREE.Clock();
 
     // Set up the renderer
@@ -36,27 +36,31 @@ export class SceneManager {
       1000000,
     );
     this.camera.rotation.order = "YXZ";
+    this.scene.add(this.camera);
   }
 
   setupLights() {
-    const fillLight1 = new THREE.HemisphereLight(0x8dc1de, 0x00668d, 1.5);
-    fillLight1.position.set(2, 1, 1);
-    this.scene.add(fillLight1);
+    // Create and attach a spotlight to the exit sign
+    const exitLight = new THREE.SpotLight(0xffaa33, 2); // Warm, focused light
+    exitLight.position.set(12.61, 12.49, 1.79); // Position of the exit sign
+    exitLight.angle = Math.PI / 6; // Narrow beam angle for focus
+    exitLight.penumbra = 0.5; // Soft edge
+    exitLight.distance = 20; // Limited range
+    exitLight.castShadow = true;
+    exitLight.shadow.mapSize.width = 512;
+    exitLight.shadow.mapSize.height = 512;
+    this.scene.add(exitLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5);
-    directionalLight.position.set(-5, 25, -1);
-    directionalLight.castShadow = true;
-    directionalLight.shadow.camera.near = 0.01;
-    directionalLight.shadow.camera.far = 500;
-    directionalLight.shadow.camera.right = 30;
-    directionalLight.shadow.camera.left = -30;
-    directionalLight.shadow.camera.top = 30;
-    directionalLight.shadow.camera.bottom = -30;
-    directionalLight.shadow.mapSize.width = 1024;
-    directionalLight.shadow.mapSize.height = 1024;
-    directionalLight.shadow.radius = 4;
-    directionalLight.shadow.bias = -0.00006;
-    this.scene.add(directionalLight);
+    // Create a dim ambient light attached to the player
+    const playerLight = new THREE.PointLight(0xffffff, 12.5, 10); // Soft, dim light
+    playerLight.castShadow = false;
+    playerLight.position.set(0, -1.5, 0); // Position relative to the player
+
+    // Assuming you have a player object you can attach it to
+    this.camera.add(playerLight); // Attach to the player
+
+    // (Optional) Update any fog settings for a more ominous look
+    this.scene.fog = new THREE.Fog(0x000000, 5, 20); // Darker fog, shorter distance
   }
 
   onWindowResize() {
@@ -75,3 +79,4 @@ export class SceneManager {
     this.stats.update();
   }
 }
+

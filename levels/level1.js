@@ -4,11 +4,16 @@ import { ModelLoader } from "../scripts/ModelLoader.js";
 import { Player } from "../scripts/Player.js";
 import { SceneManager } from "../scripts/SceneManager.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { Inventory } from "../scripts/mechanics/Inventory.js"
 import { Interactions } from "../scripts/mechanics/Interactions.js";
+import { Sounds } from "../scripts/mechanics/Sounds.js";
 
 export default function loadLevel1(modelLoader, scene, worldOctree, player) {
   const interactions = new Interactions(scene, player, worldOctree);
+  const sounds = new Sounds(player.camera);
+  sounds.loadAudio("deep_ac", "/assets/audio/deep_ac.wav");
+  sounds.loadAudio("ambience_short", "/assets/audio/ambient_cross.mp3", () => {
+    sounds.playAmbientTrack("ambience_short");
+});
 
   modelLoader.loadStairModel((stairModel) => {
     let currentPosition = new THREE.Vector3(0, 0, 0); 
@@ -59,47 +64,28 @@ export default function loadLevel1(modelLoader, scene, worldOctree, player) {
     wall.position.copy(currentPosition);
     scene.add(wall);
     worldOctree.fromGraphNode(wall);
-    });
+  });
 
-    modelLoader.loadWall("outerWall",(wallModel) => {
+  modelLoader.loadWall("outerWall",(wallModel) => {
     let currentPosition = new THREE.Vector3(4, 0, -4); 
     const wall = wallModel.clone();
     wall.scale.set(4.4, wall.scale.y, 4.2);
     wall.position.copy(currentPosition);
     scene.add(wall);
     worldOctree.fromGraphNode(wall);
+  });
+
+  sounds.loadPositionalAudio("deep_ac", "/assets/audio/deep_ac.wav", (acSound) => {
+        modelLoader.loadAC((acModel) => {
+            let currentPosition = new THREE.Vector3(12.6, 12, -5);
+            const ac = acModel.clone();
+            ac.scale.set(4, 4, 4);
+            ac.rotation.y = Math.PI;
+            ac.position.copy(currentPosition);
+            scene.add(ac);
+            
+            ac.add(acSound);
+            acSound.play(); 
+        });
     });
-
-const playerInventory = new Inventory();
-document.addEventListener("keydown", (event) => {
-  if (event.key === "i") { 
-    playerInventory.toggle();
-  }
-});
-
-// Example item pickups - replace with actual items placed in the game
-  function onItemInteract(itemType) {
-    if (itemType === "note") {
-      playerInventory.addItem({
-        name: "Mysterious Note",
-        description: "A note with cryptic writing. It might hold a clue."
-      });
-    } else if (itemType === "key") {
-      playerInventory.addItem({
-        name: "Rusty Key",
-        description: "An old key. Perhaps it opens a hidden door somewhere."
-      });
-    } else if (itemType === "diary") {
-      playerInventory.addItem({
-        name: "Torn Diary",
-        description: "A diary with a few pages missing. The remaining entries are troubling."
-      });
-    }
-  }
-
-  // Example of setting up interactions (you'll need to call `onItemInteract` when an item is picked up)
-  interactions.interactWithItem = (itemType) => {
-    onItemInteract(itemType);
-    interactions.interactedItems++; // Track interactions
-  };
 }

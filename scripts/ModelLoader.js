@@ -14,18 +14,13 @@ export class ModelLoader {
   }
 
   loadStairModel(callback) {
-    const texture = this.textureLoader.load(
-      "/assets/models/StairsLat/textures/CNCR04L.JPG",
-    );
-
-    this.loader.load("/assets/models/StairsLat/objStair.glb", (gltf) => {
+    this.loader.load("/assets/models/stairs.glb", (gltf) => {
       gltf.scene.scale.set(3 * 1.51, 3, 3);
 
       gltf.scene.traverse((child) => {
         if (child.isMesh) {
           child.castShadow = true;
           child.receiveShadow = true;
-          child.material.map = texture;
 
           const map = child.material.map;
           map.wrapS = THREE.RepeatWrapping;
@@ -35,15 +30,6 @@ export class ModelLoader {
           map.magFilter = THREE.NearestFilter;
           map.anisotropy = 1;
         }
-      });
-
-      const helper = new OctreeHelper(this.worldOctree);
-      helper.visible = false;
-      this.scene.add(helper);
-
-      const gui = new GUI({ width: 200 });
-      gui.add({ debug: false }, "debug").onChange(function (value) {
-        helper.visible = value;
       });
 
       if (callback) {
@@ -76,7 +62,7 @@ export class ModelLoader {
         //},
         "exit_sign": { 
             path: "/assets/models/exit_sign/scene.gltf",
-            scale: 0.05,
+            scale: 0.1,
         },
         "cardboard_box": { 
             path: "/assets/models/cardboard_box/scene.gltf",
@@ -113,15 +99,13 @@ export class ModelLoader {
 }
 
   loadWall(type, callback) {
-    const texture = this.textureLoader.load("/assets/models/StairsLat/textures/CNCR03L.JPG");
-    
-    this.loader.load(`/assets/models/${type}.gltf`, (gltf) => {
+    this.loader.load(`/assets/models/${type}.glb`, (gltf) => {
       gltf.scene.scale.set(1.5, 1.7, 1.2);
       gltf.scene.traverse((child) => {
         if(child.isMesh) {
           child.castShadow = true;
           child.receiveShadow = true;
-          child.material.map = texture;
+
 
           const map = child.material.map;
           map.wrapS = THREE.RepeatWrapping;
@@ -138,4 +122,27 @@ export class ModelLoader {
       }
     });
   }
+  
+  loadAC(callback) {
+    
+    this.loader.load(`/assets/models/air_conditioner/scene.gltf`, (gltf) => {
+      gltf.scene.scale.set(1.5, 1.7, 1.2);
+      gltf.scene.traverse((child) => {
+        if(child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+
+          const map = child.material.map;
+          map.minFilter = THREE.LinearFilter;
+          map.magFilter = THREE.NearestFilter;
+          map.anisotropy = 1;
+        }
+      });
+
+      if (callback) {
+        callback(gltf.scene);
+      }
+    });
+  }
+
 }
