@@ -14,7 +14,7 @@ export class ModelLoader {
   }
 
   loadStairModel(callback) {
-    this.loader.load("/assets/models/stairs.glb", (gltf) => {
+    this.loader.load("assets/models/stairs.glb", (gltf) => {
       gltf.scene.scale.set(3 * 1.51, 3, 3);
 
       gltf.scene.traverse((child) => {
@@ -41,19 +41,19 @@ export class ModelLoader {
  loadItem(itemType, callback) {
     const modelConfigs = {
         "paper_bag": { 
-            path: "/assets/models/paper_bag/scene.gltf",
+            path: "assets/models/paper_bag/scene.gltf",
             scale: 0.5,
         },
         "small_radio": { 
-            path: "/assets/models/radio/scene.gltf",
+            path: "assets/models/radio/scene.gltf",
             scale: 4,
         },
         "note": { 
-            path: "/assets/models/note/scene.gltf",
+            path: "assets/models/note/scene.gltf",
             scale: 2.3,
         },
         "key": { 
-            path: "/assets/models/key/scene.gltf",
+            path: "assets/models/key/scene.gltf",
             scale: 0.1,
         },
         //"diary": { 
@@ -61,11 +61,11 @@ export class ModelLoader {
         //    scale: 0.2,
         //},
         "exit_sign": { 
-            path: "/assets/models/exit_sign/scene.gltf",
+            path: "assets/models/exit_sign/scene.gltf",
             scale: 0.1,
         },
         "cardboard_box": { 
-            path: "/assets/models/cardboard_box/scene.gltf",
+            path: "assets/models/cardboard_box/scene.gltf",
             scale: 0.5,
         },
         //"robbie": { 
@@ -99,7 +99,7 @@ export class ModelLoader {
 }
 
   loadWall(type, callback) {
-    this.loader.load(`/assets/models/${type}.glb`, (gltf) => {
+    this.loader.load(`assets/models/${type}.glb`, (gltf) => {
       gltf.scene.scale.set(1.5, 1.7, 1.2);
       gltf.scene.traverse((child) => {
         if(child.isMesh) {
@@ -124,8 +124,7 @@ export class ModelLoader {
   }
   
   loadAC(callback) {
-    
-    this.loader.load(`/assets/models/air_conditioner/scene.gltf`, (gltf) => {
+    this.loader.load(`assets/models/air_conditioner/scene.gltf`, (gltf) => {
       gltf.scene.scale.set(1.5, 1.7, 1.2);
       gltf.scene.traverse((child) => {
         if(child.isMesh) {
@@ -145,4 +144,26 @@ export class ModelLoader {
     });
   }
 
+ loadBoss(callback) {
+    this.loader.load(`assets/models/boss.glb`, (gltf) => {
+      gltf.scene.scale.set(2, 2, 2);
+      console.log(gltf.scene);
+      gltf.scene.traverse((child) => {
+        child.position.y += 2;
+        if(child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+
+          //const map = child.material.map;
+          //map.minFilter = THREE.LinearFilter;
+          //map.magFilter = THREE.NearestFilter;
+          //map.anisotropy = 1;
+        }
+      });
+
+      if (callback) {
+        callback(gltf.scene);
+      }
+    });
+  }
 }

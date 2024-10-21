@@ -14,12 +14,17 @@ export class Interactions {
     this.sounds = new Sounds(player.camera);
 
     this.items = [
-      { type: "paper_bag", position: new THREE.Vector3(-6.6, 1.5, -0.8) },
-      { type: "note", position: new THREE.Vector3(10.65, 9.85, -12.33) },
-      { type: "key", position: new THREE.Vector3(10.61, 5.49, 1.79) },
-      { type: "cardboard_box", position: new THREE.Vector3(3.64, 3.2, -0.18) },
-      { type: "small_radio", position: new THREE.Vector3(-3.03, 11.24, -10.33) },
+      { type: "paper_bag", position: new THREE.Vector3(-6.6, 1.5, -0.8), interacted: false },
+      { type: "note", position: new THREE.Vector3(10.65, 9.85, -12.33), interacted: false },
+      { type: "key", position: new THREE.Vector3(10.61, 5.49, 1.79), interacted: false },
+      { type: "cardboard_box", position: new THREE.Vector3(3.64, 3.2, -0.18), interacted: false },
+      { type: "small_radio", position: new THREE.Vector3(-3.03, 11.24, -10.33), interacted: false },
     ];
+    // TODO: add extra second for audios since they cut out early
+    // TODO: enable random exit direction
+    // set the game ending
+    // integrate boss and death
+    // try to sort out robbie Rabbit peephole
 
     this.exit = { type: "exit_sign", position: new THREE.Vector3(12.61, 12.49, 1.79) };
     this.exitDir = Math.round(Math.random());//(Math.random()>=0.5)? 1 : 0;
@@ -28,6 +33,8 @@ export class Interactions {
     this.levelCompleted = 0;
     this.levelEnded = false;
     this.lives = 3;
+
+    this.loadedSounds = {};
 
     this.lifeContainer = document.getElementById("life-container");
     this.FKeyPressed = false;
@@ -49,16 +56,35 @@ export class Interactions {
     this.loadAllAudio();
   }
 
+//loadAllAudio() {
+//  this.sounds.loadPositionalAudio("paper_bag", "/assets/audio/paper_bag.mp3");
+//  this.sounds.loadPositionalAudio("small_radio", "/assets/audio/radio1.mp3");
+//  this.sounds.loadPositionalAudio("cardboard_box", "/assets/audio/box.mp3");
+//  this.sounds.loadAudio("game_over", "/assets/audio/look_behind.wav");
+//  this.sounds.loadAudio("respawn", "/assets/audio/respawn.mp3");
+//}
+
 loadAllAudio() {
-  this.sounds.loadAudio("paper_bag", "/assets/audio/paper_bag.mp3");
-  this.sounds.loadAudio("small_radio", "/assets/audio/radio.mp3");
-  this.sounds.loadAudio("cardboard_box", "/assets/audio/box.mp3");
-  this.sounds.loadAudio("game_over", "/assets/audio/look_behind.wav");
-  this.sounds.loadAudio("respawn", "/assets/audio/respawn.mp3");
+    this.sounds.loadPositionalAudio("paper_bag", "assets/audio/paper_bag.mp3", (sound) => {
+        this.loadedSounds.paper_bag = sound;
+    });
+    this.sounds.loadPositionalAudio("small_radio", "assets/audio/radio1.mp3", (sound) => {
+        this.loadedSounds.small_radio = sound;
+    });
+    this.sounds.loadPositionalAudio("cardboard_box", "assets/audio/box.mp3", (sound) => {
+        this.loadedSounds.cardboard_box = sound;
+    });
+    this.sounds.loadAudio("game_over", "assets/audio/look_behind.wav", (sound) => {
+        this.loadedSounds.game_over = sound;
+    });
+    this.sounds.loadAudio("respawn", "assets/audio/respawn.mp3", (sound) => {
+        this.loadedSounds.respawn = sound;
+    });
 }
 
 initializeRandomItems() {
     this.levelEnded = false;
+    // could remove exit model after each level, but the randomness might make it funny
     this.scene.remove(this.exit.type);
 
     //if (this.activeItems.length > 0){
@@ -77,7 +103,6 @@ initializeRandomItems() {
         }
         exitModel.position.copy(this.exit.position);
         //this.worldOctree.fromGraphNode(exitModel);
-        // could remove exit model after each level, but the randomness might make it funny
         this.scene.add(exitModel);
     });
     for (const item of this.activeItems) {
@@ -157,6 +182,7 @@ isInteractKeyPressed() {
     console.log("Interacting with:", itemType);
 
     // Play associated audio
+    itemObject.add(this.loadedSounds[itemType]);
     this.sounds.playAudio(itemType);
 
     // Handle interactions and remove or keep the item
@@ -237,6 +263,7 @@ isInteractKeyPressed() {
 
   triggerGameOver() {
     console.log("Game Over");
+    this.sounds.playAudio("game_over");
     //this.levelEnded = true;
   }
 }

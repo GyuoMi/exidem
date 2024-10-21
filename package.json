@@ -1,9 +1,10 @@
 {
   "name": "project",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
     "start": "live-server",
+    "build": "parcel build index.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -11,7 +12,8 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "live-server": "^1.2.2"
+    "live-server": "^1.2.2",
+    "parcel-bundler": "^1.12.5"
   },
   "dependencies": {
     "gltf-builder": "^0.7.1"

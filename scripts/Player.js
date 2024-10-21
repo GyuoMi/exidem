@@ -26,13 +26,13 @@ export class Player {
     
     this.doorCreak = new THREE.Audio(this.listener);
     const audioLoader = new THREE.AudioLoader();
-    audioLoader.load('/assets/audio/door_creak.wav', (buffer) => {
+    audioLoader.load('assets/audio/door_creak.wav', (buffer) => {
         this.doorCreak.setBuffer(buffer);
         this.doorCreak.setVolume(0.05);
     });
 
     this.walkingSound = new THREE.Audio(this.listener);
-    audioLoader.load('/assets/audio/walking_stone.wav', (buffer) => {
+    audioLoader.load('assets/audio/walking_stone.wav', (buffer) => {
         this.walkingSound.setBuffer(buffer);
         this.walkingSound.setLoop(true); 
         this.walkingSound.setVolume(0.5); 
@@ -41,7 +41,7 @@ export class Player {
 
 
     this.lifeLostSfx = new THREE.Audio(this.listener);
-    audioLoader.load('/assets/audio/look_behind.wav', (buffer) => {
+    audioLoader.load('assets/audio/look_behind.wav', (buffer) => {
         this.lifeLostSfx.setBuffer(buffer);
         this.lifeLostSfx.setVolume(0.05);
     });

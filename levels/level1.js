@@ -10,8 +10,8 @@ import { Sounds } from "../scripts/mechanics/Sounds.js";
 export default function loadLevel1(modelLoader, scene, worldOctree, player) {
   const interactions = new Interactions(scene, player, worldOctree);
   const sounds = new Sounds(player.camera);
-  sounds.loadAudio("deep_ac", "/assets/audio/deep_ac.wav");
-  sounds.loadAudio("ambience_short", "/assets/audio/ambient_cross.mp3", () => {
+  sounds.loadAudio("deep_ac", "assets/audio/deep_ac.wav");
+  sounds.loadAudio("ambience_short", "assets/audio/ambient_cross.mp3", () => {
     sounds.playAmbientTrack("ambience_short");
 });
 
@@ -58,6 +58,14 @@ export default function loadLevel1(modelLoader, scene, worldOctree, player) {
     interactions.initializeRandomItems();
   });
 
+  modelLoader.loadBoss((bossModel) => {
+    let currentPosition = new THREE.Vector3(10, 5.55, 4);
+    const boss = bossModel.clone();
+    boss.scale.set(9,9,9);
+    boss.position.copy(currentPosition);
+    scene.add(boss);
+  });
+
   modelLoader.loadWall("innerWall", (wallModel) => {
     let currentPosition = new THREE.Vector3(4, 0, -4); 
     const wall = wallModel.clone();
@@ -75,7 +83,7 @@ export default function loadLevel1(modelLoader, scene, worldOctree, player) {
     worldOctree.fromGraphNode(wall);
   });
 
-  sounds.loadPositionalAudio("deep_ac", "/assets/audio/deep_ac.wav", (acSound) => {
+  sounds.loadPositionalAudio("deep_ac", "assets/audio/deep_ac.wav", (acSound) => {
         modelLoader.loadAC((acModel) => {
             let currentPosition = new THREE.Vector3(12.6, 12, -5);
             const ac = acModel.clone();
@@ -85,6 +93,7 @@ export default function loadLevel1(modelLoader, scene, worldOctree, player) {
             scene.add(ac);
             
             ac.add(acSound);
+            acSound.setLoop(true);
             acSound.play(); 
         });
     });
