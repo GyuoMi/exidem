@@ -20,7 +20,7 @@ export class Player {
     this.playerCollider = new Capsule(
       new THREE.Vector3(0, 2, 0),
       new THREE.Vector3(0, 2, 0),
-      0.4,
+      1.0,
     );
     this.playerOnFloor = false;
     
@@ -78,10 +78,12 @@ export class Player {
     // TODO: fix unlimited vertical look
     const MIN_PITCH = -Math.PI / 2; 
     const MAX_PITCH = Math.PI / 2; 
+    // higher is slower
+    const camSpeed = 500;
     document.body.addEventListener("mousemove", (event) => {
       if (document.pointerLockElement === document.body) {
-        this.camera.rotation.y -= event.movementX / 500;
-        this.camera.rotation.x -= event.movementY / 500;
+        this.camera.rotation.y -= event.movementX / camSpeed;
+        this.camera.rotation.x -= event.movementY / camSpeed;
         this.camera.rotation.x = Math.max(MIN_PITCH, Math.min(MAX_PITCH, this.camera.rotation.x));
       }
     });
@@ -127,7 +129,7 @@ export class Player {
     const cameraOffset = new THREE.Vector3(0,2.0,0);
     this.camera.position.copy(this.playerCollider.end).add(cameraOffset);
 
-    this.teleportPlayerIfOob();
+    //this.teleportPlayerIfOob();
     //fake floor
     if (this.camera.position.y < 0) {
       this.playerVelocity.y = 0;
@@ -183,7 +185,7 @@ export class Player {
   controls(deltaTime) {
     // TODO: change speed so it's slower on release
     const speedDelta = deltaTime * (this.playerOnFloor ? 25 : 8);
-    //const speedDelta = deltaTime * (this.playerOnFloor ? 15 : 8);
+    //const speedDelta = deltaTime * (this.playerOnFloor ? 10 : 8);
 
     if (this.keyStates["KeyW"]) {
       this.playerVelocity.add(

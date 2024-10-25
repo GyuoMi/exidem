@@ -5,6 +5,9 @@ import { Octree } from "three/addons/math/Octree.js";
 import { Sounds } from "./Sounds.js";
 import { Inventory } from "./Inventory.js";
 
+// tps perspective for item interactions inverted controls
+// window on wall for skybox
+// rabbit on windowsill instead of peephole
 export class Interactions {
   constructor(scene, player, worldOctree) {
     this.scene = scene;
@@ -16,8 +19,8 @@ export class Interactions {
     this.items = [
       { type: "paper_bag", position: new THREE.Vector3(-6.6, 1.5, -0.8), interacted: false },
       { type: "note", position: new THREE.Vector3(10.65, 9.85, -12.33), interacted: false },
-      { type: "key", position: new THREE.Vector3(10.61, 5.49, 1.79), interacted: false },
       { type: "cardboard_box", position: new THREE.Vector3(3.64, 3.2, -0.18), interacted: false },
+      { type: "key", position: new THREE.Vector3(10.61, 5.49, 1.79), interacted: false },
       { type: "small_radio", position: new THREE.Vector3(-3.03, 11.24, -10.33), interacted: false },
     ];
     // TODO: add extra second for audios since they cut out early
@@ -27,13 +30,14 @@ export class Interactions {
     // try to sort out robbie Rabbit peephole
 
     this.exit = { type: "exit_sign", position: new THREE.Vector3(12.61, 12.49, 1.79) };
-    this.exitDir = Math.round(Math.random());//(Math.random()>=0.5)? 1 : 0;
+    this.exitDir;//(Math.random()>=0.5)? 1 : 0;
     this.activeItems = [];
     this.interactedItems = 0;
     this.levelCompleted = 0;
     this.levelEnded = false;
     this.lives = 3;
 
+    this.exitSfx = false;
     this.loadedSounds = {};
 
     this.lifeContainer = document.getElementById("life-container");
@@ -91,10 +95,12 @@ initializeRandomItems() {
     //  console.warn("skipping dupes, already initialized");
     //  return;
     //}
-    this.activeItems = this.items.sort(() => 0.5 - Math.random()).slice(0, 2);
+    const nextItemIndex = this.activeItems.length; 
+  console.log(this.activeItems.length-1)
+    const itemToLoad = this.items[nextItemIndex]; 
     this.modelLoader.loadItem(this.exit.type, (exitModel) => {
-        //this.exitDir = !this.exitDir;
-        this.exitDir = 1;
+        this.exitDir = Math.round(Math.random());;
+        //this.exitDir = 1;
         console.log("exit:", this.exitDir === 1 ? "up" : this.exitDir === 0 ? "down" : this.exitDir);
         // logic is the sign points down when rotated, and points up by default
         if (!this.exitDir){ // but then will be false here so it doesn't rotate
@@ -105,27 +111,28 @@ initializeRandomItems() {
         //this.worldOctree.fromGraphNode(exitModel);
         this.scene.add(exitModel);
     });
-    for (const item of this.activeItems) {
-        this.modelLoader.loadItem(item.type, (itemModel) => {
-            itemModel.position.copy(item.position);
-            itemModel.name = item.type;
-            this.scene.add(itemModel);
-            //this.worldOctree.fromGraphNode(itemModel);
+    this.modelLoader.loadItem(itemToLoad.type, (itemModel) => {
+        itemModel.position.copy(itemToLoad.position);
+        itemModel.name = itemToLoad.type;
+        this.scene.add(itemModel);
+        //this.worldOctree.fromGraphNode(itemModel);
 
-            // Compute bounding box and scale it by 1.5x
-            const bbox = new THREE.Box3().setFromObject(itemModel);
-            
-            bbox.expandByScalar(1.5);
-            itemModel.userData.boundingBox = bbox;
-            itemModel.userData.type = item.type;
+        // Compute bounding box and scale it by 1.5x
+        const bbox = new THREE.Box3().setFromObject(itemModel);
+        
+        bbox.expandByScalar(1.5);
+        itemModel.userData.boundingBox = bbox;
+        itemModel.userData.type = itemToLoad.type;
 
-            console.log(`Item loaded: ${item.type} with scaled bounding box at (${item.position.x}, ${item.position.y}, ${item.position.z})`);
+        itemToLoad.interacted = true;
+        console.log(`Item loaded: ${itemToLoad.type} with scaled bounding box at (${itemToLoad.position.x}, ${itemToLoad.position.y}, ${itemToLoad.position.z})`);
 
-            // Optionally visualize the scaled bounding box
-            const boxHelper = new THREE.Box3Helper(bbox, 0xfff000); 
-            this.scene.add(boxHelper);
-        });
-    }
+        // Optionally visualize the scaled bounding box
+        const boxHelper = new THREE.Box3Helper(bbox, 0xfff000); 
+        this.scene.add(boxHelper);
+        this.activeItems.push(itemToLoad);
+      console.log(this.activeItems.length)
+    });
 }
 
 checkForInteractions() {
@@ -198,7 +205,7 @@ isInteractKeyPressed() {
     }
 
     this.interactedItems++;
-    if (this.interactedItems >= 2) {
+    if (this.interactedItems >= 1) {
       this.endLevel();
     }
   }
@@ -265,6 +272,21 @@ isInteractKeyPressed() {
     console.log("Game Over");
     this.sounds.playAudio("game_over");
     //this.levelEnded = true;
+  }
+  
+  triggerGameComplete(){
+    if (levelCompleted == 5){
+      if (annyang) {
+        const commands = {
+          'angela': () => { alert('remembered'); }
+        };
+
+        annyang.addCommands(commands);
+
+        // Start listening.
+        annyang.start();
+      }
+    }
   }
 }
 

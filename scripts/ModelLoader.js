@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { TextureLoader } from "three";
 import { OctreeHelper } from "three/addons/helpers/OctreeHelper.js";
-
+import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
 import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 
 export class ModelLoader {
@@ -11,10 +11,11 @@ export class ModelLoader {
     this.worldOctree = worldOctree;
     this.loader = new GLTFLoader();
     this.textureLoader = new TextureLoader();
+    this.fbxloader = new FBXLoader();
   }
 
   loadStairModel(callback) {
-    this.loader.load("assets/models/stairs.glb", (gltf) => {
+    this.loader.load(`assets/models/stairs/stairs.glb`, (gltf) => {
       gltf.scene.scale.set(3 * 1.51, 3, 3);
 
       gltf.scene.traverse((child) => {
@@ -122,6 +123,30 @@ export class ModelLoader {
       }
     });
   }
+
+  loadLamp(callback) {
+    this.loader.load(`assets/models/lamp.glb`, (gltf) => {
+      gltf.scene.traverse((child) => {
+        if(child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+
+
+          const map = child.material.map;
+          map.wrapS = THREE.RepeatWrapping;
+          map.wrapT = THREE.RepeatWrapping;
+          map.repeat.set(4,4);
+          map.minFilter = THREE.LinearFilter;
+          map.magFilter = THREE.NearestFilter;
+          map.anisotropy = 1;
+        }
+      });
+
+      if (callback) {
+        callback(gltf.scene);
+      }
+    });
+  }
   
   loadAC(callback) {
     this.loader.load(`assets/models/air_conditioner/scene.gltf`, (gltf) => {
@@ -144,26 +169,41 @@ export class ModelLoader {
     });
   }
 
- loadBoss(callback) {
-    this.loader.load(`assets/models/boss.glb`, (gltf) => {
-      gltf.scene.scale.set(2, 2, 2);
-      console.log(gltf.scene);
-      gltf.scene.traverse((child) => {
-        child.position.y += 2;
-        if(child.isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-
-          //const map = child.material.map;
-          //map.minFilter = THREE.LinearFilter;
-          //map.magFilter = THREE.NearestFilter;
-          //map.anisotropy = 1;
-        }
-      });
-
-      if (callback) {
-        callback(gltf.scene);
-      }
-    });
-  }
+ //loadBoss(callback) {
+ loadBoss() {
+   this.fbxloader.setPath('assets/blender/');
+   this.fbxloader.load('boss.fbx', (fbx) => {
+     fbx.scale.setScalar(0.1);
+     fbx.traverse (c => {
+       c.castShadow = true;
+     });
+     
+     this._mixer = new THREE.AnimationMixer(fbx);
+     if(fbx.animations && fbx.animations.length > 0) {
+       const idle = this._mixer.clipAction(fbx.animations[0]);
+       idle.play();
+     }
+     this.scene.add(fbx);
+   });
+    //this.loader.load(`assets/boss.glb`, (gltf) => {
+    //  gltf.scene.scale.set(2, 2, 2);
+    //  console.log(gltf.scene);
+    //  gltf.scene.traverse((child) => {
+    //    child.position.y += 2;
+    //    if(child.isMesh) {
+    //      child.castShadow = true;
+    //      child.receiveShadow = true;
+    //
+    //      //const map = child.material.map;
+    //      //map.minFilter = THREE.LinearFilter;
+    //      //map.magFilter = THREE.NearestFilter;
+    //      //map.anisotropy = 1;
+    //    }
+    //  });
+    //
+    //  if (callback) {
+    //    callback(gltf.scene);
+    //  }
+    //});
+ }
 }

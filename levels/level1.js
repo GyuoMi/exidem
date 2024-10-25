@@ -15,10 +15,25 @@ export default function loadLevel1(modelLoader, scene, worldOctree, player) {
     sounds.playAmbientTrack("ambience_short");
 });
 
+  // transformation stacks arent used since the scene is static
   modelLoader.loadStairModel((stairModel) => {
     let currentPosition = new THREE.Vector3(0, 0, 0); 
     let currentRotation = 0; 
 
+    //let fillPos = new THREE.Vector3(0, 0, 0);
+    //let fillRot = 0;
+    //const stairCloneBottom = stairModel.clone();
+    //  fillRot += Math.PI / 2;
+    //  fillPos.x += 8.7;
+    //  fillPos.z -= 0.73;
+    //  fillPos.y += 2.94;
+    //  stairCloneBottom.position.copy(fillPos);
+    //  stairCloneBottom.rotation.y = fillRot;
+    //
+    //  scene.add(stairCloneBottom);
+    //  worldOctree.fromGraphNode(stairCloneBottom);
+      
+      
     const numStairs = 2; 
     // create bottom half of stairs
     for (let i = 0; i < numStairs; i++) {
@@ -55,17 +70,23 @@ export default function loadLevel1(modelLoader, scene, worldOctree, player) {
       currentPosition.y += 2.94;
     }
 
+      const stairCloneTop = stairModel.clone();
+      //currentPosition.set(8, 2.7 * numStairs, -8);
+      currentPosition.x += 9.4;
+      currentPosition.z += 6.5;
+      currentPosition.y -= 0.94;
+      stairCloneTop.position.copy(currentPosition);
+      stairCloneTop.rotation.y = currentRotation;
+
+      scene.add(stairCloneTop);
+      worldOctree.fromGraphNode(stairCloneTop);
+
+      currentRotation += Math.PI / 2;
+
     interactions.initializeRandomItems();
   });
 
-  modelLoader.loadBoss((bossModel) => {
-    let currentPosition = new THREE.Vector3(10, 5.55, 4);
-    const boss = bossModel.clone();
-    boss.scale.set(9,9,9);
-    boss.position.copy(currentPosition);
-    scene.add(boss);
-  });
-
+  //modelLoader.loadBoss()
   modelLoader.loadWall("innerWall", (wallModel) => {
     let currentPosition = new THREE.Vector3(4, 0, -4); 
     const wall = wallModel.clone();
@@ -74,10 +95,11 @@ export default function loadLevel1(modelLoader, scene, worldOctree, player) {
     worldOctree.fromGraphNode(wall);
   });
 
-  modelLoader.loadWall("outerWall",(wallModel) => {
+  modelLoader.loadWall("outerWall_window",(wallModel) => {
     let currentPosition = new THREE.Vector3(4, 0, -4); 
     const wall = wallModel.clone();
-    wall.scale.set(4.4, wall.scale.y, 4.2);
+    wall.rotation.y += Math.PI;
+    wall.scale.set(4.5, 3.4, 4.2);
     wall.position.copy(currentPosition);
     scene.add(wall);
     worldOctree.fromGraphNode(wall);

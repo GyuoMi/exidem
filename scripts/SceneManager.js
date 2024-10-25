@@ -5,7 +5,7 @@ export class SceneManager {
   constructor(scene, container) {
     this.container = container;
     this.scene = scene;
-    this.scene.fog = new THREE.Fog(0x222222, 10, 40); 
+    //this.scene.fog = new THREE.Fog(0x222222, 10, 40); 
     this.clock = new THREE.Clock();
 
     // Set up the renderer
@@ -22,15 +22,110 @@ export class SceneManager {
     this.stats.domElement.style.top = "0px";
     this.container.appendChild(this.stats.domElement);
 
+    this.environmentMap;
+
     this.setupCamera();
     this.setupLights();
+    this.setupSkybox();
+    this.setupMoonlight(); 
+    this.createWindowGlass(); 
 
     window.addEventListener("resize", this.onWindowResize.bind(this));
   }
 
+createWindowGlass(){
+    const glassGeometry = new THREE.PlaneGeometry(3.75, 3.75); // Adjust size to fit your window frame
+    const glassMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xffffff,
+        transmission: 1,
+        opacity: 1,
+        metalness: 0,
+        roughness: 0,
+        ior: 1.5,
+        thickness: 0.01,
+        specularIntensity: 1,
+        specularColor: 0xffffff,
+        envMapIntensity: 1,
+        lightIntensity: 1,
+        exposure: 1
+    });
+
+    // Load skybox textures and set as environment map
+    const cubeTextureLoader = new THREE.CubeTextureLoader();
+    const envMap = cubeTextureLoader.load([
+        'assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_rt.png', 
+        'assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_lt.png', 
+        'assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_up.png', 
+        'assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_dn.png', 
+        'assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_ft.png', 
+        'assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_bk.png'  
+    ]);
+
+    // Set the cube environment map to the glass material
+    envMap.mapping = THREE.CubeReflectionMapping; // Enable reflection mapping
+    glassMaterial.envMap = envMap;
+    glassMaterial.needsUpdate = true; // Ensure the material updates with the env map
+
+    const glass = new THREE.Mesh(glassGeometry, glassMaterial);
+    glass.position.set(-4.8, 15.5, -4); // Position it right at the window frame
+    glass.rotation.y = Math.PI / 2; // Rotate if needed to align with the window
+    this.scene.add(glass);
+}
+
+
+  setupMoonlight() {
+    const moonlight = new THREE.DirectionalLight(0x8888ff, 1); // Soft bluish-white light for moonlight
+    moonlight.position.set(-13, 20, 10); // Position above and outside the window
+    moonlight.target.position.set(-3, 15, -8); // Aim towards the window
+    moonlight.castShadow = true; // Enable shadow casting
+    moonlight.shadow.mapSize.width = 1024; // Higher resolution shadows
+    moonlight.shadow.mapSize.height = 1024;
+    moonlight.shadow.camera.near = 0.5;
+    moonlight.shadow.camera.far = 50;
+
+    // Configure shadow camera size
+    moonlight.shadow.camera.left = -10;
+    moonlight.shadow.camera.right = 10;
+    moonlight.shadow.camera.top = 10;
+    moonlight.shadow.camera.bottom = -10;
+
+    // Add the light and its target to the scene
+    this.scene.add(moonlight);
+    this.scene.add(moonlight.target);
+
+    // Optional: visualize the shadow camera frustum (useful for debugging)
+    const helper = new THREE.CameraHelper(moonlight.shadow.camera);
+    this.scene.add(helper);
+  }
+
+  setupSkybox(){
+    
+    let materialArray = [];
+    let texture_ft = new THREE.TextureLoader().load('assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_ft.png');
+    let texture_bk = new THREE.TextureLoader().load('assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_bk.png');
+    let texture_up = new THREE.TextureLoader().load('assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_up.png');
+    let texture_dn = new THREE.TextureLoader().load('assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_dn.png');
+    let texture_rt = new THREE.TextureLoader().load('assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_rt.png');
+    let texture_lt = new THREE.TextureLoader().load('assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_lt.png');
+
+    materialArray.push(new THREE.MeshBasicMaterial({map: texture_ft}));
+    materialArray.push(new THREE.MeshBasicMaterial({map: texture_bk}));
+    materialArray.push(new THREE.MeshBasicMaterial({map: texture_up}));
+    materialArray.push(new THREE.MeshBasicMaterial({map: texture_dn}));
+    materialArray.push(new THREE.MeshBasicMaterial({map: texture_rt}));
+    materialArray.push(new THREE.MeshBasicMaterial({map: texture_lt}));
+
+    for (let i=0; i<materialArray.length; i++)
+      materialArray[i].side = THREE.BackSide;
+    let skyboxGeo = new THREE.BoxGeometry(20, 20, 30);
+    let skybox = new THREE.Mesh(skyboxGeo, materialArray);
+    skybox.position.set(-18, 15, -4);
+    this.scene.add(skybox);
+  }
+
   setupCamera() {
     this.camera = new THREE.PerspectiveCamera(
-      75,
+      65,
       window.innerWidth / window.innerHeight,
       0.1,
       1000000,
@@ -39,29 +134,60 @@ export class SceneManager {
     this.scene.add(this.camera);
   }
 
-  setupLights() {
+// Function to create random flickering effect
+randomFlicker(light) {
+    const minIntensity = 0.7; // Minimum light intensity
+    const maxIntensity = 2.5; // Maximum light intensity
+
+    function flicker() {
+        const randomDelay = Math.random() * 500; // Up to half a second delay
+        const randomIntensity = Math.random() * (maxIntensity - minIntensity) + minIntensity;
+
+        // Set the light intensity to the random value
+        light.intensity = randomIntensity;
+
+        // Recursively call the flicker function after the random delay
+        setTimeout(flicker, randomDelay);
+    }
+
+    // Start the initial flicker
+    flicker();
+}
+
+setupLights() {
     // Create and attach a spotlight to the exit sign
-    const exitLight = new THREE.SpotLight(0xffaa33, 2); // Warm, focused light
-    exitLight.position.set(12.61, 12.49, 1.79); // Position of the exit sign
-    exitLight.angle = Math.PI / 6; // Narrow beam angle for focus
-    exitLight.penumbra = 0.5; // Soft edge
-    exitLight.distance = 20; // Limited range
+    const exitLight = new THREE.SpotLight(0xffaa33, 5); // Increase intensity
+    exitLight.position.set(11.61, 13.49, 1.79); // Position of the exit sign
+    exitLight.angle = Math.PI / 6; // Wider beam angle
+    exitLight.penumbra = 0.2; // Adjust for a softer edge
+    exitLight.distance = 50; // Extend the range
     exitLight.castShadow = true;
     exitLight.shadow.mapSize.width = 512;
     exitLight.shadow.mapSize.height = 512;
+
+    // Ensure the light is pointing towards the exit sign
+    const targetObject = new THREE.Object3D();
+    targetObject.position.set(12.61, 11.5, 1.79); // Adjust as needed
+    this.scene.add(targetObject);
+    exitLight.target = targetObject;
+
+    // TODO: could be better to use emission light
     this.scene.add(exitLight);
+    this.randomFlicker(exitLight);
+    // visualiser
+    const spotLightHelper = new THREE.SpotLightHelper(exitLight);
+    this.scene.add(spotLightHelper);
 
-    // Create a dim ambient light attached to the player
-    const playerLight = new THREE.PointLight(0xffffff, 12.5, 10); // Soft, dim light
+    // dim ambient light attached to the player
+    const playerLight = new THREE.PointLight(0xffffff, 12.5, 10);
     playerLight.castShadow = false;
-    playerLight.position.set(0, -1.5, 0); // Position relative to the player
+    playerLight.position.set(0, -1.5, 0);
 
-    // Assuming you have a player object you can attach it to
-    this.camera.add(playerLight); // Attach to the player
+    this.camera.add(playerLight);
 
-    // (Optional) Update any fog settings for a more ominous look
-    this.scene.fog = new THREE.Fog(0x000000, 5, 20); // Darker fog, shorter distance
-  }
+    //this.scene.fog = new THREE.Fog(0x000000, 5, 20);
+}
+
 
   onWindowResize() {
     this.camera.aspect = window.innerWidth / window.innerHeight;
