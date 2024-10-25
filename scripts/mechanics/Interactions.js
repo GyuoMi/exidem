@@ -69,19 +69,19 @@ export class Interactions {
 //}
 
 loadAllAudio() {
-    this.sounds.loadPositionalAudio("paper_bag", "assets/audio/paper_bag.mp3", (sound) => {
+    this.sounds.loadPositionalAudio("paper_bag", "../assets/audio/paper_bag.mp3", (sound) => {
         this.loadedSounds.paper_bag = sound;
     });
-    this.sounds.loadPositionalAudio("small_radio", "assets/audio/radio1.mp3", (sound) => {
+    this.sounds.loadPositionalAudio("small_radio", "../assets/audio/radio1.mp3", (sound) => {
         this.loadedSounds.small_radio = sound;
     });
-    this.sounds.loadPositionalAudio("cardboard_box", "assets/audio/box.mp3", (sound) => {
+    this.sounds.loadPositionalAudio("cardboard_box", "../assets/audio/box.mp3", (sound) => {
         this.loadedSounds.cardboard_box = sound;
     });
-    this.sounds.loadAudio("game_over", "assets/audio/look_behind.wav", (sound) => {
+    this.sounds.loadAudio("game_over", "../assets/audio/look_behind.wav", (sound) => {
         this.loadedSounds.game_over = sound;
     });
-    this.sounds.loadAudio("respawn", "assets/audio/respawn.mp3", (sound) => {
+    this.sounds.loadAudio("respawn", "../assets/audio/respawn.mp3", (sound) => {
         this.loadedSounds.respawn = sound;
     });
 }

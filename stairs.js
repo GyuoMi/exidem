@@ -13,7 +13,7 @@ let camera,
   stepLength,
   spotLight;
 
-const containerId = "canvasContainer";
+const containerId = "stairsBackground";
 
 const stairDef = {
   w: 20,

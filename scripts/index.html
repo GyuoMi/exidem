@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <link
+            rel="preload"
+            href="game.css"
+            as="style"
+            onload="this.rel='stylesheet'"
+        />
+        <noscript><link rel="stylesheet" href="game.css" /></noscript>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Stairwell Iliad</title>
+        <!-- Link to your CSS file -->
+
+        <div id="life-container">
+          <div class="life" id="life1"></div>
+          <div class="life" id="life2"></div>
+          <div class="life" id="life3"></div>
+        </div>
+        
+        <div id="pauseMenu" style="display: none;">
+          <div class="pause-overlay">
+              <h2>Pause Menu</h2>
+              <button id="resumeGame">Resume</button>
+              <button id="restartGame">Restart</button>
+              <button id="quitToMenu">Quit to Menu</button>
+          </div>
+        </div>
+
+        
+        <div id="inventory" style="display: none;"> <div
+            id="status">Status</div> <div id="equipment">Equipment</div> <div
+            id="command">Command</div>
+          <div id="item-display"> <div id="item-name">Item Name</div> <div
+              id="item-description">Description</div> </div>
+
+          <div id="items">
+            <!--TODO: item icons-->
+          </div>
+
+          <div id="options"> <button onclick="toggleInventory()">Close</button>
+          </div>
+        </div>
+        <div id="interactionPrompt" style="position: fixed; 
+             bottom: 20%; width: 100%; text-align: center; 
+             font-size: 24px; color: white; display: none;">Press F to interact
+        </div> 
+
+          <!-- Import Map for Three.js -->
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "https://unpkg.com/three@0.168.0/build/three.module.js",
+                    "three/addons/": "https://unpkg.com/three@0.168.0/examples/jsm/"
+                }
+            }
+        </script>
+    </head>
+
+    <body>
+        <div id="canvasContainer"></div>
+        <div id="hud">Player Position: x: 0, y: 0, z: 0</div>
+        <!--<script type="module" src="scripts/SceneManager.js"></script>-->
+        <!--<script type="module" src="scripts/Player.js"></script>-->
+        <!--<script type="module" src="scripts/ModelLoader.js"></script>-->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/annyang/1.5.0/annyang.min.js"></script>
+        <script type="module" src="main.js"></script>
+    </body>
+</html>

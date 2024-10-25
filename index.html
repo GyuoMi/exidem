@@ -1,44 +1,11 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <link
-            rel="preload"
-            href="game.css"
-            as="style"
-            onload="this.rel='stylesheet'"
-        />
-        <noscript><link rel="stylesheet" href="game.css" /></noscript>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Stairwell Iliad</title>
-        <!-- Link to your CSS file -->
-
-        <div id="life-container">
-          <div class="life" id="life1"></div>
-          <div class="life" id="life2"></div>
-          <div class="life" id="life3"></div>
-        </div>
-        
-        
-        <div id="inventory" style="display: none;"> <div
-            id="status">Status</div> <div id="equipment">Equipment</div> <div
-            id="command">Command</div>
-          <div id="item-display"> <div id="item-name">Item Name</div> <div
-              id="item-description">Description</div> </div>
-
-          <div id="items">
-            <!--TODO: item icons-->
-          </div>
-
-          <div id="options"> <button onclick="toggleInventory()">Close</button>
-          </div>
-        </div>
-        <div id="interactionPrompt" style="position: fixed; 
-             bottom: 20%; width: 100%; text-align: center; 
-             font-size: 24px; color: white; display: none;">Press F to interact
-        </div> 
-
-          <!-- Import Map for Three.js -->
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stairwell Iliad - Main Menu</title>
+    <link rel="stylesheet" href="default.css">
+        <!-- Import Map for Three.js -->
         <script type="importmap">
             {
                 "imports": {
@@ -47,15 +14,28 @@
                 }
             }
         </script>
-    </head>
+</head>
+<body>
+    <div class="menu-container">
+        <div class="menu-background" id="stairsBackground"></div>
+        <div class="menu-content">
+            <h1>Stairwell Iliad</h1>
+            <button id="startGame">Start</button>
+            <button id="showCredits">Credits</button>
+        </div>
+    </div>
+    <script type="module" src="stairs.js"></script>
+    <script>
+        document.getElementById('startGame').addEventListener('click', () => {
+            window.location.href = "scripts/index.html"; // Switches to the main game HTML
+        });
 
-    <body>
-        <div id="canvasContainer"></div>
-        <div id="hud">Player Position: x: 0, y: 0, z: 0</div>
-        <!--<script type="module" src="scripts/SceneManager.js"></script>-->
-        <!--<script type="module" src="scripts/Player.js"></script>-->
-        <!--<script type="module" src="scripts/ModelLoader.js"></script>-->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/annyang/1.5.0/annyang.min.js"></script>
-        <script type="module" src="scripts/main.js"></script>
-    </body>
+        document.getElementById('showCredits').addEventListener('click', () => {
+            fetch('./credits.txt')
+                .then(response => response.text())
+                .then(text => alert(text)); // Simple way to show credits for now
+        });
+    </script>
+</body>
 </html>
+

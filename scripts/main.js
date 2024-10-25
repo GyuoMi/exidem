@@ -18,6 +18,35 @@ const player = new Player(worldOctree, sceneManager.camera, container, listener)
 const modelLoader = new ModelLoader(sceneManager.scene, worldOctree);
 const interactions = new Interactions(scene, player, worldOctree); 
 player.setInteractions(interactions);
+
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { // Toggle pause menu
+        const pauseMenu = document.getElementById('pauseMenu');
+        if (pauseMenu.style.display === 'none') {
+            pauseMenu.style.display = 'flex';
+            sceneManager.renderer.setAnimationLoop(null); // Stop the game loop
+        } else {
+            pauseMenu.style.display = 'none';
+            sceneManager.renderer.setAnimationLoop(animate); // Resume the game loop
+        }
+    }
+});
+
+document.getElementById('resumeGame').addEventListener('click', () => {
+    document.getElementById('pauseMenu').style.display = 'none';
+    sceneManager.renderer.setAnimationLoop(animate); // Resume the game
+});
+
+document.getElementById('restartGame').addEventListener('click', () => {
+    location.reload(); // Reload the current page to restart
+});
+
+document.getElementById('quitToMenu').addEventListener('click', () => {
+    window.location.href = '../index.html'; // Switch back to the menu
+});
+
+
 const hud = document.getElementById('hud');
 // Inside your animate or game loop
 function updateHUD() {

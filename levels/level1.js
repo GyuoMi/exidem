@@ -10,8 +10,8 @@ import { Sounds } from "../scripts/mechanics/Sounds.js";
 export default function loadLevel1(modelLoader, scene, worldOctree, player) {
   const interactions = new Interactions(scene, player, worldOctree);
   const sounds = new Sounds(player.camera);
-  sounds.loadAudio("deep_ac", "assets/audio/deep_ac.wav");
-  sounds.loadAudio("ambience_short", "assets/audio/ambient_cross.mp3", () => {
+  sounds.loadAudio("deep_ac", "../assets/audio/deep_ac.wav");
+  sounds.loadAudio("ambience_short", "../assets/audio/ambient_cross.mp3", () => {
     sounds.playAmbientTrack("ambience_short");
 });
 

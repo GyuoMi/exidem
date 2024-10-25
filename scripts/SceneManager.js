@@ -53,12 +53,12 @@ createWindowGlass(){
     // Load skybox textures and set as environment map
     const cubeTextureLoader = new THREE.CubeTextureLoader();
     const envMap = cubeTextureLoader.load([
-        'assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_rt.png', 
-        'assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_lt.png', 
-        'assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_up.png', 
-        'assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_dn.png', 
-        'assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_ft.png', 
-        'assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_bk.png'  
+        '../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_rt.png', 
+        '../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_lt.png', 
+        '../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_up.png', 
+        '../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_dn.png', 
+        '../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_ft.png', 
+        '../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_bk.png'  
     ]);
 
     // Set the cube environment map to the glass material
@@ -101,12 +101,12 @@ createWindowGlass(){
   setupSkybox(){
     
     let materialArray = [];
-    let texture_ft = new THREE.TextureLoader().load('assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_ft.png');
-    let texture_bk = new THREE.TextureLoader().load('assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_bk.png');
-    let texture_up = new THREE.TextureLoader().load('assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_up.png');
-    let texture_dn = new THREE.TextureLoader().load('assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_dn.png');
-    let texture_rt = new THREE.TextureLoader().load('assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_rt.png');
-    let texture_lt = new THREE.TextureLoader().load('assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_lt.png');
+    let texture_ft = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_ft.png');
+    let texture_bk = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_bk.png');
+    let texture_up = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_up.png');
+    let texture_dn = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_dn.png');
+    let texture_rt = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_rt.png');
+    let texture_lt = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_lt.png');
 
     materialArray.push(new THREE.MeshBasicMaterial({map: texture_ft}));
     materialArray.push(new THREE.MeshBasicMaterial({map: texture_bk}));
