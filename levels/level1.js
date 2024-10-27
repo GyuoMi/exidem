@@ -10,7 +10,6 @@ import { Sounds } from "../scripts/mechanics/Sounds.js";
 export default function loadLevel1(modelLoader, scene, worldOctree, player) {
   const interactions = new Interactions(scene, player, worldOctree);
   const sounds = new Sounds(player.camera);
-  sounds.loadAudio("deep_ac", "../assets/audio/deep_ac.wav");
   sounds.loadAudio("ambience_short", "../assets/audio/ambient_cross.mp3", () => {
     sounds.playAmbientTrack("ambience_short");
 });
@@ -20,18 +19,18 @@ export default function loadLevel1(modelLoader, scene, worldOctree, player) {
     let currentPosition = new THREE.Vector3(0, 0, 0); 
     let currentRotation = 0; 
 
-    //let fillPos = new THREE.Vector3(0, 0, 0);
-    //let fillRot = 0;
-    //const stairCloneBottom = stairModel.clone();
-    //  fillRot += Math.PI / 2;
-    //  fillPos.x += 8.7;
-    //  fillPos.z -= 0.73;
-    //  fillPos.y += 2.94;
-    //  stairCloneBottom.position.copy(fillPos);
-    //  stairCloneBottom.rotation.y = fillRot;
-    //
-    //  scene.add(stairCloneBottom);
-    //  worldOctree.fromGraphNode(stairCloneBottom);
+    let fillPos = new THREE.Vector3(0, 0, 0);
+    let fillRot = 0;
+    const stairCloneBottom = stairModel.clone();
+      fillRot -= Math.PI / 2;
+      fillPos.x -= 0.6;
+      fillPos.z -= 7.50;
+      fillPos.y -= 2.50;
+      stairCloneBottom.position.copy(fillPos);
+      stairCloneBottom.rotation.y = fillRot;
+
+      scene.add(stairCloneBottom);
+      worldOctree.fromGraphNode(stairCloneBottom);
       
       
     const numStairs = 2; 
@@ -88,8 +87,9 @@ export default function loadLevel1(modelLoader, scene, worldOctree, player) {
 
   //modelLoader.loadBoss()
   modelLoader.loadWall("innerWall", (wallModel) => {
-    let currentPosition = new THREE.Vector3(4, 0, -4); 
+    let currentPosition = new THREE.Vector3(4, -4, -4); 
     const wall = wallModel.clone();
+    wall.scale.y = 2.4;
     wall.position.copy(currentPosition);
     scene.add(wall);
     worldOctree.fromGraphNode(wall);
@@ -105,7 +105,17 @@ export default function loadLevel1(modelLoader, scene, worldOctree, player) {
     worldOctree.fromGraphNode(wall);
   });
 
-  sounds.loadPositionalAudio("deep_ac", "assets/audio/deep_ac.wav", (acSound) => {
+  modelLoader.loadCabinet((cabinetModel) => {
+    let currentPosition = new THREE.Vector3(-3.6, 9.9, -10.4); 
+    const cabinet = cabinetModel.clone();
+    cabinet.rotation.y += Math.PI / 2;
+    cabinet.scale.set(3, 3, 3);
+    cabinet.position.copy(currentPosition);
+    scene.add(cabinet);
+    worldOctree.fromGraphNode(cabinet);
+  });
+
+  sounds.loadPositionalAudio("deep_ac", "../assets/audio/deep_ac.wav", (acSound) => {
         modelLoader.loadAC((acModel) => {
             let currentPosition = new THREE.Vector3(12.6, 12, -5);
             const ac = acModel.clone();

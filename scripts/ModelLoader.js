@@ -55,7 +55,7 @@ export class ModelLoader {
         },
         "key": { 
             path: "../assets/models/key/scene.gltf",
-            scale: 0.1,
+            scale: 0.4,
         },
         //"diary": { 
         //    path: "../assets/models/diary/scene.gltf",
@@ -79,7 +79,9 @@ export class ModelLoader {
     if (config) {
         this.loader.load(config.path, (gltf) => {
             gltf.scene.scale.set(config.scale, config.scale, config.scale);
-
+            if (itemType === "key") {
+                gltf.scene.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);
+            }
             gltf.scene.traverse((child) => {
                 if (child.isMesh) {
                     child.castShadow = true;
@@ -169,6 +171,29 @@ export class ModelLoader {
     });
   }
 
+  loadCabinet(callback) {
+    this.loader.load(`../assets/models/cabinet.glb`, (gltf) => {
+      //gltf.scene.scale.set(1.5, 1.7, 1.2);
+      gltf.scene.traverse((child) => {
+        if(child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+
+          const map = child.material.map;
+          map.minFilter = THREE.LinearFilter;
+          map.magFilter = THREE.NearestFilter;
+          map.anisotropy = 1;
+        }
+      });
+
+      if (callback) {
+        callback(gltf.scene);
+      }
+    });
+  }
+
+
+
  //loadBoss(callback) {
  loadBoss() {
    this.fbxloader.setPath('../assets/blender/');
@@ -178,9 +203,9 @@ export class ModelLoader {
        c.castShadow = true;
      });
      
-     this._mixer = new THREE.AnimationMixer(fbx);
+     this.mixer = new THREE.AnimationMixer(fbx);
      if(fbx.animations && fbx.animations.length > 0) {
-       const idle = this._mixer.clipAction(fbx.animations[0]);
+       const idle = this.mixer.clipAction(fbx.animations[0]);
        idle.play();
      }
      this.scene.add(fbx);

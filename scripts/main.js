@@ -14,7 +14,7 @@ const listener = new THREE.AudioListener();
 sceneManager.camera.add(listener);
 
 const worldOctree = new Octree();
-const player = new Player(worldOctree, sceneManager.camera, container, listener);
+const player = new Player(worldOctree, sceneManager.camera, container, listener, sceneManager.scene);
 const modelLoader = new ModelLoader(sceneManager.scene, worldOctree);
 const interactions = new Interactions(scene, player, worldOctree); 
 player.setInteractions(interactions);
@@ -61,9 +61,9 @@ function updateHUD() {
 
 // modelLoader.loadStairModel();
 loadLevel1(modelLoader, sceneManager.scene, worldOctree, player);
-
-player.playerCollider.start.set(0, 10, 0);
-player.playerCollider.end.set(0, 10.65, 0);
+//
+//player.playerCollider.start.set(0, 10, 0);
+//player.playerCollider.end.set(0, 10.65, 0);
 function animate() {
   const deltaTime =
     Math.min(0.05, sceneManager.clock.getDelta()) / player.STEPS_PER_FRAME;

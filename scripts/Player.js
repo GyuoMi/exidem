@@ -1,15 +1,18 @@
 import * as THREE from "three";
 import { Capsule } from "three/addons/math/Capsule.js";
 import { Inventory } from "../scripts/mechanics/Inventory.js"
+import { ModelLoader } from "../scripts/ModelLoader.js";
+import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
 
 export class Player {
-  constructor(worldOctree, camera, container, listener) {
+  constructor(worldOctree, camera, container, listener, scene) {
     this.GRAVITY = 60;
     this.STEPS_PER_FRAME = 5;
     this.walkCooldown = 0.1;
     this.lastWalkSfxUpdate - 0;
     this.worldOctree = worldOctree;
     this.camera = camera;
+    this.scene = scene;
     this.interactions = null;
     this.playerVelocity = new THREE.Vector3();
     this.playerDirection = new THREE.Vector3();
@@ -17,6 +20,11 @@ export class Player {
     this.container = container;
     this.listener = listener;
     this.lifeLost = false;
+
+    this.mixer = null; 
+    this.idleAction = null;
+    this.walkAction = null; 
+
     this.playerCollider = new Capsule(
       new THREE.Vector3(0, 2, 0),
       new THREE.Vector3(0, 2, 0),
@@ -47,8 +55,38 @@ export class Player {
     });
 
     this.initEventListeners();
+    //this.loadPlayerModel();
   }
   
+  loadPlayerModel() {
+    const fbxLoader = new FBXLoader();
+    fbxLoader.setPath('../assets/models/player/');
+    fbxLoader.load('Remy.fbx', (fbx) => {
+      fbx.scale.setScalar(0.005);
+      fbx.traverse(c => {
+        c.castShadow = true;
+      });
+
+      this.mixer = new THREE.AnimationMixer(fbx);
+      this.scene.add(fbx);
+
+      // Load walk animation
+      fbxLoader.load('Unarmed Walk Forward-inplace.fbx', (anim) => {
+        this.walkingAction = this.mixer.clipAction(anim.animations[0]);
+        this.walkingAction.play();
+        this.walkingAction.enabled = false;
+      });
+
+      // Load idle animation
+      fbxLoader.load('Unarmed Idle.fbx', (anim) => {
+        this.idleAction = this.mixer.clipAction(anim.animations[0]);
+        this.idleAction.play();
+      });
+
+      this.playerModel = fbx;
+    });
+  }
+
   setInteractions(interactions){
     // used to pull in interactions that is created after player in main.js
     // kinda hacky but fuck it
@@ -115,6 +153,8 @@ export class Player {
     let damping = Math.exp(-4 * deltaTime) - 1;
     this.controls(deltaTime);
 
+
+
     if (!this.playerOnFloor) {
       this.playerVelocity.y -= this.GRAVITY * deltaTime;
       damping *= 0.1;
@@ -126,17 +166,48 @@ export class Player {
 
     this.playerCollisions();
 
-    const cameraOffset = new THREE.Vector3(0,2.0,0);
+    const cameraOffset = new THREE.Vector3(0.5,2.0,0);
     this.camera.position.copy(this.playerCollider.end).add(cameraOffset);
 
-    //this.teleportPlayerIfOob();
+    this.handleAnimation();
+    this.teleportPlayerIfOob();
     //fake floor
     if (this.camera.position.y < 0) {
       this.playerVelocity.y = 0;
       this.camera.position.y = 0;
     }
+
+    if (this.playerModel) {
+        this.playerModel.position.copy(this.playerCollider.end);
+        this.playerModel.rotation.y = this.camera.rotation.y + Math.PI;
+    }
+
+    if (this.mixer) {
+      this.mixer.update(deltaTime);
+    }
   }
-  
+
+  handleAnimation() {
+    const speed = this.playerVelocity.length();
+    if (speed > 0.01) {
+      if (this.idleAction) this.idleAction.enabled = false;
+      if (this.walkingAction) {
+        this.walkingAction.enabled = true;
+        this.walkingAction.setEffectiveWeight(1.0);
+        this.walkingAction.play();
+      }
+    } else {
+      if (this.walkingAction) {
+        this.walkingAction.enabled = false;
+        this.walkingAction.stop();
+      }
+      if (this.idleAction) {
+        this.idleAction.enabled = true;
+        this.idleAction.play();
+      }
+    }
+  }
+
   walkingSfx() {
     const speed = this.playerVelocity.length();
 

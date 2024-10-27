@@ -16,12 +16,12 @@ export class Interactions {
     this.modelLoader = new ModelLoader(scene, worldOctree);
     this.sounds = new Sounds(player.camera);
 
-    this.items = [
+    this.items = [{ type: "small_radio", position: new THREE.Vector3(10.61, 5.49, 1.79), interacted: false },
       { type: "paper_bag", position: new THREE.Vector3(-6.6, 1.5, -0.8), interacted: false },
       { type: "note", position: new THREE.Vector3(10.65, 9.85, -12.33), interacted: false },
       { type: "cardboard_box", position: new THREE.Vector3(3.64, 3.2, -0.18), interacted: false },
-      { type: "key", position: new THREE.Vector3(10.61, 5.49, 1.79), interacted: false },
-      { type: "small_radio", position: new THREE.Vector3(-3.03, 11.24, -10.33), interacted: false },
+      { type: "key", position: new THREE.Vector3(-2.8, 13.24, -9.3), interacted: false },
+      
     ];
     // TODO: add extra second for audios since they cut out early
     // TODO: enable random exit direction
@@ -139,10 +139,17 @@ checkForInteractions() {
     let nearestItem = null;
     let nearestDistance = Infinity;
     const playerPosition = this.player.playerCollider.end.clone();
+
+    // more lenient bounding box range for things like the key and radio
+    const buffer = 0.5; 
+    const playerBox = new THREE.Box3().setFromCenterAndSize(
+        playerPosition,
+        new THREE.Vector3(buffer, buffer, buffer)
+    );
     this.scene.traverse((object) => {
         if (object.userData.boundingBox) {
-            const bbox = object.userData.boundingBox;
-            if (bbox.containsPoint(playerPosition)) {
+            const bbox = object.userData.boundingBox.clone().expandByScalar(buffer);
+            if (bbox.intersectsBox(playerBox)) {
                 // Calculate distance to determine the closest item
                 const distance = playerPosition.distanceTo(object.position);
 
