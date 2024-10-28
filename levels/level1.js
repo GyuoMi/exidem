@@ -115,6 +115,55 @@ export default function loadLevel1(modelLoader, scene, worldOctree, player) {
     worldOctree.fromGraphNode(cabinet);
   });
 
+sounds.loadPositionalAudio("lamp_swing", "../assets/audio/lamp_swing.mp3", (lampSound) => {
+    modelLoader.loadLamp((lampModel) => {
+        let currentPosition = new THREE.Vector3(4, 16, -9); 
+        const lamp = lampModel.clone();
+        lamp.rotation.y += Math.PI / 2;
+        lamp.scale.set(4, 4, 4);
+        lamp.position.copy(currentPosition);
+        
+        // Add a point light to the lamp
+        const lampLight = new THREE.PointLight(0xffddaa, 15, 5); // Color, Intensity, Range
+        lampLight.castShadow = true;
+        lampLight.position.set(0, -0.8, 0); // Adjust as needed to place within the lamp
+        // Configure shadow properties
+        lampLight.shadow.mapSize.width = 1024; // Increase for better quality
+        lampLight.shadow.mapSize.height = 1024; // Increase for better quality
+        lampLight.shadow.camera.near = 0.1; 
+        lampLight.shadow.camera.far = 10; // Adjust to control the distance of shadows
+        lampLight.shadow.bias = -0.01; // Fine-tune to reduce shadow artifacts
+
+        //  softer shadows,  adjust the light's range
+        lampLight.distance = 10; 
+        lamp.add(lampLight);
+        const lampHelper = new THREE.PointLightHelper(lampLight);
+        scene.add(lampHelper);
+
+        lamp.add(lampSound);
+        lampSound.setLoop(true);
+        lampSound.setVolume(0.125);
+        lampSound.play();
+        scene.add(lamp);
+
+        swingLamp(lamp);
+    });
+});
+
+function swingLamp(lamp) {
+    const clock = new THREE.Clock();
+
+    function animateSwing() {
+        const time = clock.getElapsedTime();
+        const swingAngle = Math.sin(time * 1.6) * 0.5; // Adjust swing speed and intensityto match audio
+        lamp.rotation.y = swingAngle; 
+        lamp.rotation.x = swingAngle;
+        requestAnimationFrame(animateSwing);
+    }
+
+    animateSwing(); 
+}
+
   sounds.loadPositionalAudio("deep_ac", "../assets/audio/deep_ac.wav", (acSound) => {
         modelLoader.loadAC((acModel) => {
             let currentPosition = new THREE.Vector3(12.6, 12, -5);
@@ -128,5 +177,5 @@ export default function loadLevel1(modelLoader, scene, worldOctree, player) {
             acSound.setLoop(true);
             acSound.play(); 
         });
-    });
+  });
 }

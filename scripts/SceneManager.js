@@ -8,7 +8,6 @@ export class SceneManager {
     //this.scene.fog = new THREE.Fog(0x222222, 10, 40); 
     this.clock = new THREE.Clock();
 
-    // Set up the renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -34,14 +33,14 @@ export class SceneManager {
   }
 
 createWindowGlass(){
-    const glassGeometry = new THREE.PlaneGeometry(3.75, 3.75); // Adjust size to fit your window frame
+    const glassGeometry = new THREE.PlaneGeometry(3.75, 3.75); 
     const glassMaterial = new THREE.MeshPhysicalMaterial({
         color: 0xffffff,
         transmission: 1,
         opacity: 1,
         metalness: 0,
         roughness: 0,
-        ior: 1.5,
+        ior: 1.0,
         thickness: 0.01,
         specularIntensity: 1,
         specularColor: 0xffffff,
@@ -68,34 +67,30 @@ createWindowGlass(){
 
     const glass = new THREE.Mesh(glassGeometry, glassMaterial);
     glass.position.set(-4.8, 15.5, -4); // Position it right at the window frame
-    glass.rotation.y = Math.PI / 2; // Rotate if needed to align with the window
+    glass.rotation.y = Math.PI / 2; 
     this.scene.add(glass);
 }
 
 
   setupMoonlight() {
-    const moonlight = new THREE.DirectionalLight(0x8888ff, 1); // Soft bluish-white light for moonlight
-    moonlight.position.set(-13, 20, 10); // Position above and outside the window
-    moonlight.target.position.set(-3, 15, -8); // Aim towards the window
-    moonlight.castShadow = true; // Enable shadow casting
-    moonlight.shadow.mapSize.width = 1024; // Higher resolution shadows
+    const moonlight = new THREE.SpotLight(0xe0e0e0, 500, 25, Math.PI / 4, 0.1, 2); // Color, intensity, distance
+    moonlight.position.set(-13, 20, 10); // Adjust position
+    moonlight.target.position.set(-3, 15, -8);
+    moonlight.castShadow = true;
+
+    // Adjust shadow settings
+    moonlight.shadow.mapSize.width = 1024;
     moonlight.shadow.mapSize.height = 1024;
-    moonlight.shadow.camera.near = 0.5;
+    moonlight.shadow.camera.near = 0.1;
     moonlight.shadow.camera.far = 50;
 
-    // Configure shadow camera size
-    moonlight.shadow.camera.left = -10;
-    moonlight.shadow.camera.right = 10;
-    moonlight.shadow.camera.top = 10;
-    moonlight.shadow.camera.bottom = -10;
-
-    // Add the light and its target to the scene
-    this.scene.add(moonlight);
-    this.scene.add(moonlight.target);
-
-    // Optional: visualize the shadow camera frustum (useful for debugging)
+    // Optional: Add a helper to visualize the light
+    //const helper = new THREE.PointLightHelper(moonlight, 0.5);
     const helper = new THREE.CameraHelper(moonlight.shadow.camera);
     this.scene.add(helper);
+
+    this.scene.add(moonlight);
+    this.scene.add(moonlight.target);
   }
 
   setupSkybox(){
@@ -179,10 +174,14 @@ setupLights() {
     this.scene.add(spotLightHelper);
 
     // dim ambient light attached to the player
-    const playerLight = new THREE.PointLight(0xffffff, 812.5, 10);
-    playerLight.castShadow = false;
+    const playerLight = new THREE.PointLight(0xffffff, 12.5, 10);
+    playerLight.castShadow = true;
     playerLight.position.set(0, -1.5, 0);
-
+    playerLight.shadow.mapSize.width = 1024; // Increase for better quality
+    playerLight.shadow.mapSize.height = 1024; // Increase for better quality
+    playerLight.shadow.camera.near = 0.1; 
+    playerLight.shadow.camera.far = 10; // Adjust to control the distance of shadows
+    playerLight.shadow.bias = -0.01; // Fine-tune to reduce shadow artifacts
     this.camera.add(playerLight);
 
     //this.scene.fog = new THREE.Fog(0x000000, 5, 20);

@@ -132,15 +132,6 @@ export class ModelLoader {
         if(child.isMesh) {
           child.castShadow = true;
           child.receiveShadow = true;
-
-
-          const map = child.material.map;
-          map.wrapS = THREE.RepeatWrapping;
-          map.wrapT = THREE.RepeatWrapping;
-          map.repeat.set(4,4);
-          map.minFilter = THREE.LinearFilter;
-          map.magFilter = THREE.NearestFilter;
-          map.anisotropy = 1;
         }
       });
 

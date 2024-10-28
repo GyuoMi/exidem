@@ -21,6 +21,7 @@ export class Player {
     this.listener = listener;
     this.lifeLost = false;
 
+    this.playerModel = null;
     this.mixer = null; 
     this.idleAction = null;
     this.walkAction = null; 
@@ -166,11 +167,11 @@ export class Player {
 
     this.playerCollisions();
 
-    const cameraOffset = new THREE.Vector3(0.5,2.0,0);
+    const cameraOffset = new THREE.Vector3(0,1.7,0);
     this.camera.position.copy(this.playerCollider.end).add(cameraOffset);
 
     this.handleAnimation();
-    this.teleportPlayerIfOob();
+    //this.teleportPlayerIfOob();
     //fake floor
     if (this.camera.position.y < 0) {
       this.playerVelocity.y = 0;

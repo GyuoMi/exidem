@@ -61,7 +61,7 @@ function updateHUD() {
 
 // modelLoader.loadStairModel();
 loadLevel1(modelLoader, sceneManager.scene, worldOctree, player);
-//
+// TODO: fix player load in location
 //player.playerCollider.start.set(0, 10, 0);
 //player.playerCollider.end.set(0, 10.65, 0);
 function animate() {
@@ -70,7 +70,7 @@ function animate() {
 
   for (let i = 0; i < player.STEPS_PER_FRAME; i++) {
     // TODO: remove controls call here, it's just an easier speedboost lol
-    player.controls(deltaTime);
+    //player.controls(deltaTime);
     player.update(deltaTime);
     interactions.checkForInteractions();
     updateHUD();
