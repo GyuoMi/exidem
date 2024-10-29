@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { ModelLoader } from "../ModelLoader.js";  
-import { buildTwistMaterial } from "../objects/shaderPatch.js";
+import { buildTwistMaterial } from "../objects/shaders/shaderPatch.js";
 import { Octree } from "three/addons/math/Octree.js";
 import { Sounds } from "./Sounds.js";
 import { Inventory } from "./Inventory.js";
@@ -8,6 +8,24 @@ import { Inventory } from "./Inventory.js";
 // tps perspective for item interactions inverted controls
 // window on wall for skybox
 // rabbit on windowsill instead of peephole
+
+// funny thing i noticed, the webspeech api only works on chromium browsers
+// so i decided to make a separate ending if the game is run on firefox :)
+let chromium = true;
+function initializeAnnyang() {
+    if (annyang) {  
+        const commands = {
+            'angela': () => {
+                alert('remembered');
+            }
+        };
+        annyang.addCommands(commands);
+        annyang.start();
+    } else {
+        chromium = false;
+    }
+}
+
 export class Interactions {
   constructor(scene, player, worldOctree) {
     this.scene = scene;
@@ -91,6 +109,10 @@ initializeRandomItems() {
     // could remove exit model after each level, but the randomness might make it funny
     this.scene.remove(this.exit.type);
 
+    if (this.levelCompleted == 5){
+      this.triggerGameComplete();
+      return;
+    }
     //if (this.activeItems.length > 0){
     //  console.warn("skipping dupes, already initialized");
     //  return;
@@ -282,18 +304,7 @@ isInteractKeyPressed() {
   }
   
   triggerGameComplete(){
-    if (levelCompleted == 5){
-      if (annyang) {
-        const commands = {
-          'angela': () => { alert('remembered'); }
-        };
-
-        annyang.addCommands(commands);
-
-        // Start listening.
-        annyang.start();
-      }
-    }
+    initializeAnnyang();
   }
 }
 

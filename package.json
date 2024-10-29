@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
-    "start": "live-server",
+    "_comment": "TODO: change this for final (i think)",
+    "start": "BROWSER=chromium live-server",
     "build": "parcel build index.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "GPL-3.0",
   "description": "",
   "devDependencies": {
     "live-server": "^1.2.2",

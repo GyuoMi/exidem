@@ -32,7 +32,7 @@ export class SceneManager {
     window.addEventListener("resize", this.onWindowResize.bind(this));
   }
 
-createWindowGlass(){
+  createWindowGlass(){
     const glassGeometry = new THREE.PlaneGeometry(3.75, 3.75); 
     const glassMaterial = new THREE.MeshPhysicalMaterial({
         color: 0xffffff,
@@ -69,12 +69,36 @@ createWindowGlass(){
     glass.position.set(-4.8, 15.5, -4); // Position it right at the window frame
     glass.rotation.y = Math.PI / 2; 
     this.scene.add(glass);
-}
+
+    // https://stackoverflow.com/questions/77893145/my-glsl-shaders-are-not-loading-on-liveserver-or-github-pages
+    const rainVertShader = document.getElementById('rain-vertex-shader').textContent;
+    const rainFragShader = document.getElementById('rain-fragment-shader').textContent;
+    const rainGeometry = new THREE.PlaneGeometry(3.75, 3.75);
+    const rainMaterial = new THREE.ShaderMaterial({
+      vertexShader: rainVertShader,
+      fragmentShader: rainFragShader,
+      uniforms: {
+        u_time: {value: 0},
+      },
+      transparent: true,
+    });
+    const rain = new THREE.Mesh(rainGeometry, rainMaterial);
+    rain.position.set(-5, 15.5, -4); 
+    rain.rotation.y = glass.rotation.y; 
+    rain.renderOrder = 1; // ensure rain is rendered on top of the glass
+    this.scene.add(rain);
+
+    function animateRain(){
+      rain.material.uniforms.u_time.value = time / 1000;
+      requestAnimationFrame(animateRain);
+    }
+    animateRain();
+  }
 
 
   setupMoonlight() {
     const moonlight = new THREE.SpotLight(0xe0e0e0, 500, 25, Math.PI / 4, 0.1, 2); // Color, intensity, distance
-    moonlight.position.set(-13, 20, 10); // Adjust position
+    moonlight.position.set(-13, 20, 10); 
     moonlight.target.position.set(-3, 15, -8);
     moonlight.castShadow = true;
 
