@@ -11,20 +11,84 @@ import { Inventory } from "./Inventory.js";
 
 // funny thing i noticed, the webspeech api only works on chromium browsers
 // so i decided to make a separate ending if the game is run on firefox :)
+// Function to detect the browser name
+function detectBrowser() {
+    const userAgent = navigator.userAgent;
+    if (userAgent.indexOf("Edg") > -1) return "Microsoft Edge";
+    else if (userAgent.indexOf("Chrome") > -1) return "Chrome";
+    else if (userAgent.indexOf("Firefox") > -1) return "Firefox";
+    else if (userAgent.indexOf("Safari") > -1) return "Safari";
+    else if (userAgent.indexOf("Opera") > -1) return "Opera";
+    else if (userAgent.indexOf("Trident") > -1 || userAgent.indexOf("MSIE") > -1) return "Internet Explorer";
+    return "Unknown";
+}
+
 let chromium = true;
+let browserName;
+// Initialize annyang and check if it’s a Chromium browser
 function initializeAnnyang() {
-    if (annyang) {  
+    if (annyang) {
         const commands = {
             'angela': () => {
-                alert('remembered');
+                //alert('remembered');
+                playEnding();
             }
         };
         annyang.addCommands(commands);
         annyang.start();
     } else {
         chromium = false;
-        alert("An alternate ending unfolds in Firefox...");
+        browserName = detectBrowser();
+        //alert(`An alternate ending unfolds in ${browserName}...The non-Chromium browser`);
+        playEnding()
     }
+}
+
+// Function to play the ending sequence
+function playEnding() {
+    const endScreen = document.createElement('div');
+    endScreen.id = 'endScreen';
+    endScreen.style.position = 'fixed';
+    endScreen.style.top = 0;
+    endScreen.style.left = 0;
+    endScreen.style.width = '100%';
+    endScreen.style.height = '100%';
+    endScreen.style.backgroundColor = 'black';
+    endScreen.style.color = 'white';
+    endScreen.style.display = 'flex';
+    endScreen.style.alignItems = 'center';
+    endScreen.style.justifyContent = 'center';
+    endScreen.style.flexDirection = 'column';
+    endScreen.style.fontFamily = 'Courier New, Courier, monospace';;
+    endScreen.style.fontSize = '20px';
+    document.body.appendChild(endScreen);
+
+    if (chromium) {
+        endScreen.innerHTML = `
+            <p>
+                In January 2017, Bernard Gore, a 71-year-old man suffering from dementia, became lost in the stairwell of a Westfield shopping center in Sydney. After leaving to run errands, he wandered into a confusing labyrinth of locked doors and staircases. Tragically, his body was discovered three weeks later, having laid undiscovered just meters away from where his family waited.
+            </p>
+            <p>
+                Some elements of the story were changed for this game in order to communicate difficulties that individuals with dementia face.<br>
+                Thank you for playing.
+            </p>
+        `;
+
+    } else {
+        endScreen.innerHTML = `
+            <img src="../../assets/non-chromium.png" alt="Non-Chromium Ending Image" style="max-width: 80%; height: auto; margin-bottom: 20px;">
+            <p>An alternate ending unfolds here in ${detectBrowser()}...</p>
+        `;
+    }
+
+    // Fade-out transition to main menu after a delay
+    setTimeout(() => {
+        endScreen.style.transition = 'opacity 2s';
+        endScreen.style.opacity = 0;
+        setTimeout(() => {
+            window.location.href = '../../index.html';
+        }, 2000); // Wait for fade-out before navigating
+    }, 8000); // Display ending for 8 seconds before fading out
 }
 
 export class Interactions {
@@ -37,10 +101,10 @@ export class Interactions {
 
     this.items = [
       { type: "paper_bag", position: new THREE.Vector3(-6.6, 1.5, -0.5), interacted: false },
-      //{ type: "note", position: new THREE.Vector3(10.65, 9.85, -12.33), interacted: false },
-      //{ type: "cardboard_box", position: new THREE.Vector3(3.64, 3.2, -0.18), interacted: false },
-      //{ type: "key", position: new THREE.Vector3(-2.8, 13.24, -9.3), interacted: false },
-      //{ type: "small_radio", position: new THREE.Vector3(10.21, 5.59, 2.79), interacted: false },
+      { type: "note", position: new THREE.Vector3(10.65, 9.85, -12.33), interacted: false },
+      { type: "cardboard_box", position: new THREE.Vector3(3.64, 3.2, -0.18), interacted: false },
+      { type: "key", position: new THREE.Vector3(-2.8, 13.24, -9.3), interacted: false },
+      { type: "small_radio", position: new THREE.Vector3(10.21, 5.59, 2.79), interacted: false },
     ];
     // TODO: add extra second for audios since they cut out early
     // TODO: enable random exit direction
@@ -110,10 +174,10 @@ initializeRandomItems() {
     // could remove exit model after each level, but the randomness might make it funny
     this.scene.remove(this.exit.type);
 
-    //if (this.items[4].interacted) {
-    //  this.triggerGameComplete();
-    //  return;
-    //}
+    if (this.items[4].interacted) {
+      this.triggerGameComplete();
+      return;
+    }
     const itemToLoad = this.items[this.levelCompleted]; 
     this.modelLoader.loadItem(this.exit.type, (exitModel) => {
         this.exitDir = Math.round(Math.random());;

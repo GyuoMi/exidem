@@ -156,8 +156,8 @@ sounds.loadPositionalAudio("lamp_swing", "../assets/audio/lamp_swing.mp3", (lamp
         //  softer shadows,  adjust the light's range
         lampLight.distance = 10; 
         lamp.add(lampLight);
-        const lampHelper = new THREE.PointLightHelper(lampLight);
-        scene.add(lampHelper);
+        //const lampHelper = new THREE.PointLightHelper(lampLight);
+        //scene.add(lampHelper);
 
         lamp.add(lampSound);
         lampSound.setLoop(true);

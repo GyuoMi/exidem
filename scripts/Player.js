@@ -205,7 +205,7 @@ export class Player {
     this.camera.position.copy(this.playerCollider.end).add(cameraOffset);
 
     this.handleAnimation();
-    //this.teleportPlayerIfOob();
+    this.teleportPlayerIfOob();
     //fake floor
     if (this.camera.position.y < 0) {
       this.playerVelocity.y = 0;
