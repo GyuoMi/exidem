@@ -1,9 +1,31 @@
 import * as THREE from "three";
 import { ModelLoader } from "../ModelLoader.js";  
-import { buildTwistMaterial } from "../objects/shaderPatch.js";
+import { buildTwistMaterial } from "../objects/shaders/shaderPatch.js";
 import { Octree } from "three/addons/math/Octree.js";
 import { Sounds } from "./Sounds.js";
 import { Inventory } from "./Inventory.js";
+
+// tps perspective for item interactions inverted controls
+// window on wall for skybox
+// rabbit on windowsill instead of peephole
+
+// funny thing i noticed, the webspeech api only works on chromium browsers
+// so i decided to make a separate ending if the game is run on firefox :)
+let chromium = true;
+function initializeAnnyang() {
+    if (annyang) {  
+        const commands = {
+            'angela': () => {
+                alert('remembered');
+            }
+        };
+        annyang.addCommands(commands);
+        annyang.start();
+    } else {
+        chromium = false;
+        alert("An alternate ending unfolds in Firefox...");
+    }
+}
 
 export class Interactions {
   constructor(scene, player, worldOctree) {
@@ -14,93 +36,138 @@ export class Interactions {
     this.sounds = new Sounds(player.camera);
 
     this.items = [
-      { type: "paper_bag", position: new THREE.Vector3(-6.6, 1.5, -0.8) },
-      { type: "note", position: new THREE.Vector3(10.65, 9.85, -12.33) },
-      { type: "key", position: new THREE.Vector3(10.61, 5.49, 1.79) },
-      { type: "cardboard_box", position: new THREE.Vector3(3.64, 3.2, -0.18) },
-      { type: "small_radio", position: new THREE.Vector3(-3.03, 11.24, -10.33) },
+      { type: "paper_bag", position: new THREE.Vector3(-6.6, 1.5, -0.5), interacted: false },
+      //{ type: "note", position: new THREE.Vector3(10.65, 9.85, -12.33), interacted: false },
+      //{ type: "cardboard_box", position: new THREE.Vector3(3.64, 3.2, -0.18), interacted: false },
+      //{ type: "key", position: new THREE.Vector3(-2.8, 13.24, -9.3), interacted: false },
+      //{ type: "small_radio", position: new THREE.Vector3(10.21, 5.59, 2.79), interacted: false },
     ];
+    // TODO: add extra second for audios since they cut out early
+    // TODO: enable random exit direction
+    // set the game ending
+    // integrate boss and death
+    // try to sort out robbie Rabbit peephole
 
     this.exit = { type: "exit_sign", position: new THREE.Vector3(12.61, 12.49, 1.79) };
-    this.exitDir = Math.round(Math.random());//(Math.random()>=0.5)? 1 : 0;
+    this.exitDir;//(Math.random()>=0.5)? 1 : 0;
     this.activeItems = [];
     this.interactedItems = 0;
     this.levelCompleted = 0;
     this.levelEnded = false;
     this.lives = 3;
 
+    this.exitSfx = false;
+    this.loadedSounds = {};
+
     this.lifeContainer = document.getElementById("life-container");
     this.FKeyPressed = false;
 
     // Listen for keydown and keyup to track 'F' key state
     document.addEventListener('keydown', (event) => {
-        if (event.key === 'f' || event.key === 'F') {
+        if (event.key.toLowerCase() === 'f') {
             this.isFKeyPressed = true;
         }
     });
 
     document.addEventListener('keyup', (event) => {
-        if (event.key === 'f' || event.key === 'F') {
+        if (event.key.toLowerCase() === 'f') {
             this.isFKeyPressed = false;
         }
     });
 
     this.playerInventory = new Inventory();
+    this.loadAllAudio();
   }
+
+//loadAllAudio() {
+//  this.sounds.loadPositionalAudio("paper_bag", "/assets/audio/paper_bag.mp3");
+//  this.sounds.loadPositionalAudio("small_radio", "/assets/audio/radio1.mp3");
+//  this.sounds.loadPositionalAudio("cardboard_box", "/assets/audio/box.mp3");
+//  this.sounds.loadAudio("game_over", "/assets/audio/look_behind.wav");
+//  this.sounds.loadAudio("respawn", "/assets/audio/respawn.mp3");
+//}
+
+loadAllAudio() {
+    this.sounds.loadPositionalAudio("paper_bag", "../assets/audio/paper_bag.mp3", (sound) => {
+        this.loadedSounds.paper_bag = sound;
+    });
+    this.sounds.loadPositionalAudio("small_radio", "../assets/audio/radio1.mp3", (sound) => {
+        this.loadedSounds.small_radio = sound;
+    });
+    this.sounds.loadPositionalAudio("cardboard_box", "../assets/audio/box.mp3", (sound) => {
+        this.loadedSounds.cardboard_box = sound;
+    });
+    this.sounds.loadAudio("game_over", "../assets/audio/look_behind.wav", (sound) => {
+        this.loadedSounds.game_over = sound;
+    });
+    this.sounds.loadAudio("respawn", "../assets/audio/respawn.mp3", (sound) => {
+        this.loadedSounds.respawn = sound;
+    });
+}
 
 initializeRandomItems() {
     this.levelEnded = false;
+    // could remove exit model after each level, but the randomness might make it funny
     this.scene.remove(this.exit.type);
 
-    //if (this.activeItems.length > 0){
-    //  console.warn("skipping dupes, already initialized");
+    //if (this.items[4].interacted) {
+    //  this.triggerGameComplete();
     //  return;
     //}
-    this.activeItems = this.items.sort(() => 0.5 - Math.random()).slice(0, 2);
+    const itemToLoad = this.items[this.levelCompleted]; 
     this.modelLoader.loadItem(this.exit.type, (exitModel) => {
-        this.exitDir = !this.exitDir;
-      this.exitDir = true;
-        console.log("exit:", this.exitDir === true ? "up" : this.exitDir === false ? "down" : this.exitDir);
-        // logic is the sign points up when rotated, and points down by default
-        if (this.exitDir){
+        this.exitDir = Math.round(Math.random());;
+        //this.exitDir = 1;
+        console.log("exit:", this.exitDir === 1 ? "up" : this.exitDir === 0 ? "down" : this.exitDir);
+        // logic is the sign points down when rotated, and points up by default
+        if (!this.exitDir){ // but then will be false here so it doesn't rotate
+          console.log("rotated");
           exitModel.rotation.y = Math.PI;
         }
         exitModel.position.copy(this.exit.position);
         //this.worldOctree.fromGraphNode(exitModel);
-        // could remove exit model after each level, but the randomness might make it funny
         this.scene.add(exitModel);
     });
-    for (const item of this.activeItems) {
-        this.modelLoader.loadItem(item.type, (itemModel) => {
-            itemModel.position.copy(item.position);
-            itemModel.name = item.type;
-            this.scene.add(itemModel);
-            //this.worldOctree.fromGraphNode(itemModel);
+    this.modelLoader.loadItem(itemToLoad.type, (itemModel) => {
+        itemModel.position.copy(itemToLoad.position);
+        itemModel.name = itemToLoad.type;
+        this.scene.add(itemModel);
+        //this.worldOctree.fromGraphNode(itemModel);
 
-            // Compute bounding box and scale it by 1.5x
-            const bbox = new THREE.Box3().setFromObject(itemModel);
-            
-            bbox.expandByScalar(1.5);
-            itemModel.userData.boundingBox = bbox;
-            itemModel.userData.type = item.type;
+        // Compute bounding box and scale it by 1.5x
+        const bbox = new THREE.Box3().setFromObject(itemModel);
+        
+        bbox.expandByScalar(1);
+        itemModel.userData.boundingBox = bbox;
+        itemModel.userData.type = itemToLoad.type;
 
-            console.log(`Item loaded: ${item.type} with scaled bounding box at (${item.position.x}, ${item.position.y}, ${item.position.z})`);
+        itemToLoad.interacted = true;
+        //console.log(`Item loaded: ${itemToLoad.type} with scaled bounding box at (${itemToLoad.position.x}, ${itemToLoad.position.y}, ${itemToLoad.position.z})`);
 
-            // Optionally visualize the scaled bounding box
-            const boxHelper = new THREE.Box3Helper(bbox, 0xfff000); 
-            this.scene.add(boxHelper);
-        });
-    }
+        // Optionally visualize the scaled bounding box
+        //const boxHelper = new THREE.Box3Helper(bbox, 0xfff000); 
+        //this.scene.add(boxHelper);
+        if (this.levelCompleted === 0) {
+            this.showPrompt("Objective: Remember her name");
+        }
+    });
 }
 
 checkForInteractions() {
     let nearestItem = null;
     let nearestDistance = Infinity;
     const playerPosition = this.player.playerCollider.end.clone();
+
+    // more lenient bounding box range for things like the key and radio
+    const buffer = 0.5; 
+    const playerBox = new THREE.Box3().setFromCenterAndSize(
+        playerPosition,
+        new THREE.Vector3(buffer, buffer, buffer)
+    );
     this.scene.traverse((object) => {
         if (object.userData.boundingBox) {
-            const bbox = object.userData.boundingBox;
-            if (bbox.containsPoint(playerPosition)) {
+            const bbox = object.userData.boundingBox.clone().expandByScalar(buffer);
+            if (bbox.intersectsBox(playerBox)) {
                 // Calculate distance to determine the closest item
                 const distance = playerPosition.distanceTo(object.position);
 
@@ -117,7 +184,7 @@ checkForInteractions() {
         this.showInteractionPrompt(nearestItem.userData.type);
         //const pickups = ["diary", "note", "key"];
         if (this.isInteractKeyPressed()) {
-            this.interactWithItem(nearestItem.userData.type);
+            this.interactWithItem(nearestItem);
             this.scene.remove(nearestItem);
         }
     } else {
@@ -142,76 +209,71 @@ isInteractKeyPressed() {
   return this.isFKeyPressed;
 }
 
+interactWithItem(itemObject) {
+  const itemType = itemObject.userData.type;
+  //console.log("Interacting with:", itemType);
 
+  // Play associated audio
+  itemObject.add(this.loadedSounds[itemType]);
+  this.sounds.playAudio(itemType);
 
-  // Call this method when player interacts with an item
-  interactWithItem(itemType) {
-    // Handle item-specific interactions
-    console.log("interacting");
-    if (itemType === "paper_bag") {
-        // TODO: shader twist effect
-        //// Apply the twist effect to the paper bag model
-        //const twistMaterial = buildTwistMaterial(4.0); // Adjust the speed by changing the amount
-        //const paperBag = this.scene.getObjectByName("paper_bag");
-        //if (paperBag) {
-        //    paperBag.material = twistMaterial;
-        //}
-
-        this.playAudio(itemType);
+  // Define item details based on type
+  const itemDetails = {
+    note: {
+      name: "Mysterious Note",
+      description: `Patient exhibits cognitive dissonance, possibly dementia.
+      Frequent mentions of Rose and Angela, both potentially significant.
+      Notably, Rose is often referred to as the youngest, yet the patient
+      insists that Taylor is older, creating contradictions. Despite this,
+      Angela is frequently recalled as possessing the oldest memories. The
+      patient seems to call out to Taylor often, blurring the lines of familial
+      connections. No other records seem to be on hand...`,
+      promptText: "Picked up a note. \n Check inventory with 'I' for details. \n I feel very disorientated..."
+    },
+    key: {
+      name: "Rusty Key",
+      description: `This used to be a key to our special place. 
+      Angela was always the light, but I can still hear Rose laughing and Taylor calling for me.
+      Where do I fit in their stories?`,
+      promptText: "Found an old key. It might open something important."
+    },
+    small_radio: {
+      name: "Portable Radio",
+      description: `I thought I had everything, but now it’s a tangled mess. 
+      Rose was my joy, Taylor my pride, yet without Angela, I feel lost. 
+      Who are they to me now?`,
+      promptText: "The radio crackles faintly. Perhaps it holds a clue."
     }
-    if (itemType === "paper_bag" || itemType === "small_radio" || itemType === "cardboard_box") {
-      // Play auditory story element
-      this.playAudio(itemType);
-    }// TODO: diary check
-    else if (itemType === "note" || itemType === "key") {
+  };
 
-      if (itemType === "note") {
-        this.playerInventory.addItem({
-          name: "Mysterious Note",
-          description: "A note with cryptic writing. It might hold a clue."
-        });
-      } 
-      if (itemType === "key") {
-        this.playerInventory.addItem({
-          name: "Rusty Key",
-          description: "An old key. Perhaps it opens a hidden door somewhere."
-        });
-      }
-
-      this.displayText(itemType);
-    }
-    //else if (itemType === "robbie_rabbit") {
-    //  // Handle Robbie the Rabbit interaction
-    //  this.handleRobbieInteraction();
-    //}
-
-    this.interactedItems++;
-    console.log(this.interactedItems);
-    // Check if the level should end (all items interacted with)
-    if (this.interactedItems >= 2) {
-      this.endLevel();
-    }
+  if (itemType == "note"){
+    this.player.toggleTopDownView();
+  }
+  if (itemDetails[itemType]) {
+    this.playerInventory.addItem({
+      name: itemDetails[itemType].name,
+      description: itemDetails[itemType].description
+    });
+    this.showPrompt(itemDetails[itemType].promptText);
+  } else {
+    console.log(`${itemType} interaction completed, but item not removed.`);
   }
 
-  playAudio(itemType) {
-    // Implement audio logic here
-    console.log(`Playing audio for: ${itemType}`);
+  this.interactedItems++;
+  if (this.interactedItems >= 1) {
+    this.endLevel();
   }
+}
 
-  displayText(itemType) {
-    // Implement text display logic here
-    console.log(`Displaying text for: ${itemType}`);
-  }
+showPrompt(message) {
+  const prompt = document.getElementById("prompt");
+  prompt.innerText = message;
+  prompt.classList.add("fade-in");
 
-  handleExitSign() {
-    // Implement special trigger logic for the exit sign
-    console.log("Exit sign interaction triggered.");
-  }
-
-  handleRobbieInteraction() {
-    // Implement Robbie the Rabbit interaction logic
-    console.log("Robbie the Rabbit interaction triggered.");
-  }
+  setTimeout(() => {
+    prompt.classList.remove("fade-in");
+  }, 5000); 
+}
 
   endLevel() {
     console.log("Level completed.");
@@ -237,7 +299,6 @@ isInteractKeyPressed() {
     console.log(this.lives)
     // Update the visual representation of lives
     const currentLives = this.lifeContainer.children;
-    this.sounds.loadAudio("respawn", "/assets/audio/respawn.mp3");
     // Ensure that we don't go out of bounds
     if (this.lives >= 0 && this.lives < currentLives.length) {
         // Add the 'transparent' class to the current life being lost
@@ -254,7 +315,13 @@ isInteractKeyPressed() {
 
   triggerGameOver() {
     console.log("Game Over");
+    this.sounds.playAudio("game_over");
     //this.levelEnded = true;
+  }
+  
+  triggerGameComplete(){
+    this.showPrompt("Who Am I?");
+    initializeAnnyang();
   }
 }
 

@@ -7,10 +7,10 @@ export class Sounds {
         camera.add(this.listener);
         this.audioLoader = new THREE.AudioLoader();
         this.activeSounds = {};
-        // Track AudioContext state
+        // track AudioContext state
         this.audioContext = this.listener.context;
 
-        // Resume AudioContext after user gesture
+        // resume AudioContext after user gesture
         window.addEventListener("click", () => this.resumeAudioContext());
         window.addEventListener("keydown", () => this.resumeAudioContext()); 
     }
@@ -23,7 +23,6 @@ export class Sounds {
       }
     }
 
-    // Method to load and store audio
     loadAudio(name, filePath, onLoadCallback) {
       this.audioLoader.load(filePath, (buffer) => {
           const audio = new THREE.Audio(this.listener);
@@ -32,13 +31,11 @@ export class Sounds {
           audio.setVolume(0.5);
           this.activeSounds[name] = audio;
           
-          // Callback to indicate loading is complete
           if (onLoadCallback) onLoadCallback();
       });
     }
 
 
-    // Method to load positional audio
     loadPositionalAudio(name, url, onLoad) {
       const sound = new THREE.PositionalAudio(this.listener);
       
@@ -46,7 +43,7 @@ export class Sounds {
           sound.setBuffer(buffer);
           sound.setRefDistance(20); // Set the distance at which the sound starts to fade
           sound.setVolume(0.25); // Adjust volume if needed
-          sound.setLoop(true);
+          sound.setLoop(false);
           this.activeSounds[name] = sound;
 
           if (onLoad) {
