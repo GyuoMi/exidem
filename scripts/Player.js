@@ -25,10 +25,11 @@ export class Player {
     this.mixer = null; 
     this.idleAction = null;
     this.walkAction = null; 
+    this.isTopDownView = false;
 
     this.playerCollider = new Capsule(
       new THREE.Vector3(0, 2, 0),
-      new THREE.Vector3(0, 2, 0),
+      new THREE.Vector3(0, 2.5, 0),
       1.0,
     );
     this.playerOnFloor = false;
@@ -56,7 +57,7 @@ export class Player {
     });
 
     this.initEventListeners();
-    //this.loadPlayerModel();
+    this.loadPlayerModel();
   }
   
   loadPlayerModel() {
@@ -85,8 +86,31 @@ export class Player {
       });
 
       this.playerModel = fbx;
+      this.playerModel.visible = false;
+
     });
   }
+
+  toggleTopDownView() {
+    // Check if in top-down view to toggle between perspectives
+    this.isTopDownView = !this.isTopDownView;
+
+    if (this.isTopDownView) {
+        // Position camera for top-down view
+        this.camera.position.set(this.playerModel.position.x, this.playerModel.position.y + 2, this.playerModel.position.z);
+        this.camera.lookAt(this.playerModel.position); // Orient camera to look at the player model from above
+        
+        // Enable player model visibility
+        this.playerModel.visible = true;
+    } else {
+        // Revert to first-person view
+        const cameraOffset = new THREE.Vector3(0, 1.7, 0); // Standard first-person offset
+        this.camera.position.copy(this.playerCollider.end).add(cameraOffset);
+        
+        // Disable player model visibility in first-person view
+        this.playerModel.visible = false;
+    }
+}
 
   setInteractions(interactions){
     // used to pull in interactions that is created after player in main.js
@@ -103,9 +127,17 @@ export class Player {
     });
 
     const playerInventory = new Inventory();
+    // Toggle inventory visibility and pointer lock on pressing "i"
     document.addEventListener("keydown", (event) => {
       if (event.key === "i") { 
-        playerInventory.toggle();
+        playerInventory.toggle(); // Show or hide inventory
+
+        // Toggle pointer lock based on inventory visibility
+        if (document.pointerLockElement) {
+          document.exitPointerLock();
+        } else {
+          document.body.requestPointerLock();
+        }
       }
     });
 
@@ -121,9 +153,11 @@ export class Player {
     const camSpeed = 500;
     document.body.addEventListener("mousemove", (event) => {
       if (document.pointerLockElement === document.body) {
+        if (!this.isTopDownView){
+          this.camera.rotation.x -= event.movementY / camSpeed;
+          this.camera.rotation.x = Math.max(MIN_PITCH, Math.min(MAX_PITCH, this.camera.rotation.x));
+        }
         this.camera.rotation.y -= event.movementX / camSpeed;
-        this.camera.rotation.x -= event.movementY / camSpeed;
-        this.camera.rotation.x = Math.max(MIN_PITCH, Math.min(MAX_PITCH, this.camera.rotation.x));
       }
     });
   }
@@ -181,6 +215,10 @@ export class Player {
     if (this.playerModel) {
         this.playerModel.position.copy(this.playerCollider.end);
         this.playerModel.rotation.y = this.camera.rotation.y + Math.PI;
+    }
+    
+    if (this.isTopDownView){
+      this.camera.position.y += 2;
     }
 
     if (this.mixer) {
@@ -258,22 +296,23 @@ export class Player {
     // TODO: change speed so it's slower on release
     const speedDelta = deltaTime * (this.playerOnFloor ? 25 : 8);
     //const speedDelta = deltaTime * (this.playerOnFloor ? 10 : 8);
-
+    const forwardDirection = this.isTopDownView ? -1 : 1;
+    const sideDirection = this.isTopDownView ? -1 : 1;
     if (this.keyStates["KeyW"]) {
       this.playerVelocity.add(
-        this.getForwardVector().multiplyScalar(speedDelta),
+        this.getForwardVector().multiplyScalar(speedDelta * forwardDirection),
       );
     }
     if (this.keyStates["KeyS"]) {
       this.playerVelocity.add(
-        this.getForwardVector().multiplyScalar(-speedDelta),
+        this.getForwardVector().multiplyScalar(-speedDelta * forwardDirection),
       );
     }
     if (this.keyStates["KeyA"]) {
-      this.playerVelocity.add(this.getSideVector().multiplyScalar(-speedDelta));
+      this.playerVelocity.add(this.getSideVector().multiplyScalar(-speedDelta * sideDirection));
     }
     if (this.keyStates["KeyD"]) {
-      this.playerVelocity.add(this.getSideVector().multiplyScalar(speedDelta));
+      this.playerVelocity.add(this.getSideVector().multiplyScalar(speedDelta * sideDirection));
     }
     
     // TODO: remove for release
@@ -321,6 +360,9 @@ export class Player {
       if (this.interactions.levelEnded && teleported && !this.doorCreak.isPlaying ) {
         if (!this.lifeLost){
           this.doorCreak.play();
+          if (this.isTopDownView){
+            this.toggleTopDownView();
+          }
           this.interactions.initializeRandomItems();
         }
         this.lifeLost = false;

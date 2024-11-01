@@ -12,6 +12,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Stairwell Iliad</title>
         <!-- Link to your CSS file -->
+        <div id="start-screen"></div>
+
+        <div id="prompt"></div>
 
         <div id="life-container">
           <div class="life" id="life1"></div>
@@ -37,9 +40,6 @@
 
           <div id="items">
             <!--TODO: item icons-->
-          </div>
-
-          <div id="options"> <button onclick="toggleInventory()">Close</button>
           </div>
         </div>
         <div id="interactionPrompt" style="position: fixed; 
@@ -67,19 +67,26 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/annyang/1.5.0/annyang.min.js"></script>
         <script type="module" src="main.js"></script>
         <script id="rain-vertex-shader" type="x-shader/x-vertex">
-        out vec2 uvInterpolator;
+out vec3 vReflect; // Reflection vector for sampling the environment map
+uniform vec3 u_cameraPosition;
+void main() {
+    vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+    vec3 worldNormal = normalize(mat3(modelMatrix) * normal);
+    vec3 fixedCameraPosition = vec3(u_cameraPosition.x, u_cameraPosition.y, u_cameraPosition.z);
+    // Constant camera position so it doesn't distort depending where you're looking from weirdly
+    vec3 incidentVector = normalize(worldPosition.xyz - fixedCameraPosition);
+    vReflect = reflect(incidentVector, worldNormal); // Calculate reflection vector
 
-        void main() {
-          uvInterpolator = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
+    gl_Position = projectionMatrix * viewMatrix * worldPosition;
+}
+
         </script>
 
         <script id="rain-fragment-shader" type="x-shader/x-fragment">
         // CREDITS: honestly masssive credits to this, it's amazing Book of shaders https://thebookofshaders.com/10/
-        in vec2 uvInterpolator;
         uniform float u_time;
-        uniform sampler2D u_texture;
+        uniform samplerCube u_envMap;
+        in vec3 vReflect;
 
         // Generate a random float from a single input and seed.
         float Random11(float inputValue, float seed) {
@@ -133,24 +140,22 @@
           return drop;
         }
 
-        void main() {
-          // Set interpolator ourselves since threejs only provides it to the vertex shader
-          vec2 uv = uvInterpolator;
+void main() {
+    // Convert reflection vector to 2D UV for distortion
+    vec2 uv = vec2(vReflect.x, vReflect.y);
 
-          // Run the Drop function 10 times to create seemingly random pattern.
-          vec2 drops = vec2(0.0);
-          for(int i = 0; i < 10; i++) {
-            drops += Drops(uv, 42424.43 + float(i) * 12313.432);
-          }
+    // Apply droplet distortions to the UV coordinates
+    vec2 drops = vec2(0.0);
+    for (int i = 0; i < 10; i++) {
+        drops += Drops(uv, 42424.43 + float(i) * 12313.432);
+    }
+    uv += drops;
 
-          // Distort UV.
-          uv += drops;
+    // Sample the environment map using the distorted reflection vector
+    vec4 color = textureCube(u_envMap, normalize(vReflect + vec3(drops, 0.0)));
 
-          // Sample the texture after distorting the UV space.
-          vec4 color = texture2D(u_texture, uv);
-
-          gl_FragColor = color;
-        }
+    gl_FragColor = color;
+}
         </script>
     </body>
 </html>

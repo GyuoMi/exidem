@@ -141,6 +141,12 @@ export class ModelLoader {
     });
   }
   
+  // would've been better to standardize some of these models so at least i cpould just have one function 
+  // for loading in any item, passing in a path would've been better...
+  // not a completely bad decision since some of these models have different material properties (mostly mine so having a filter on them doesnt work as well)
+  // some also have animations, player model loading would've been here but it was easier to just manage it in the player.js due to parameters passed
+  // things like the scene do have a camera property so it yeah... some things are a bit redundant
+  
   loadAC(callback) {
     this.loader.load(`../assets/models/air_conditioner/scene.gltf`, (gltf) => {
       gltf.scene.scale.set(1.5, 1.7, 1.2);
@@ -183,7 +189,25 @@ export class ModelLoader {
     });
   }
 
+  loadBarrels(type, callback) {
+    this.loader.load(`../assets/models/props/${type}_props.glb`, (gltf) => {
+      gltf.scene.traverse((child) => {
+        if(child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          
+          const map = child.material.map;
+          map.minFilter = THREE.LinearFilter;
+          map.magFilter = THREE.NearestFilter;
+          map.anisotropy = 1;
+        }
+      });
 
+      if (callback) {
+        callback(gltf.scene);
+      }
+    });
+  }
 
  //loadBoss(callback) {
  loadBoss() {

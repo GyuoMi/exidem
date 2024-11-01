@@ -23,6 +23,7 @@ function initializeAnnyang() {
         annyang.start();
     } else {
         chromium = false;
+        alert("An alternate ending unfolds in Firefox...");
     }
 }
 
@@ -34,12 +35,12 @@ export class Interactions {
     this.modelLoader = new ModelLoader(scene, worldOctree);
     this.sounds = new Sounds(player.camera);
 
-    this.items = [{ type: "small_radio", position: new THREE.Vector3(10.61, 5.49, 1.79), interacted: false },
-      { type: "paper_bag", position: new THREE.Vector3(-6.6, 1.5, -0.8), interacted: false },
-      { type: "note", position: new THREE.Vector3(10.65, 9.85, -12.33), interacted: false },
-      { type: "cardboard_box", position: new THREE.Vector3(3.64, 3.2, -0.18), interacted: false },
-      { type: "key", position: new THREE.Vector3(-2.8, 13.24, -9.3), interacted: false },
-      
+    this.items = [
+      { type: "paper_bag", position: new THREE.Vector3(-6.6, 1.5, -0.5), interacted: false },
+      //{ type: "note", position: new THREE.Vector3(10.65, 9.85, -12.33), interacted: false },
+      //{ type: "cardboard_box", position: new THREE.Vector3(3.64, 3.2, -0.18), interacted: false },
+      //{ type: "key", position: new THREE.Vector3(-2.8, 13.24, -9.3), interacted: false },
+      //{ type: "small_radio", position: new THREE.Vector3(10.21, 5.59, 2.79), interacted: false },
     ];
     // TODO: add extra second for audios since they cut out early
     // TODO: enable random exit direction
@@ -63,13 +64,13 @@ export class Interactions {
 
     // Listen for keydown and keyup to track 'F' key state
     document.addEventListener('keydown', (event) => {
-        if (event.key === 'f' || event.key === 'F') {
+        if (event.key.toLowerCase() === 'f') {
             this.isFKeyPressed = true;
         }
     });
 
     document.addEventListener('keyup', (event) => {
-        if (event.key === 'f' || event.key === 'F') {
+        if (event.key.toLowerCase() === 'f') {
             this.isFKeyPressed = false;
         }
     });
@@ -109,17 +110,11 @@ initializeRandomItems() {
     // could remove exit model after each level, but the randomness might make it funny
     this.scene.remove(this.exit.type);
 
-    if (this.levelCompleted == 5){
-      this.triggerGameComplete();
-      return;
-    }
-    //if (this.activeItems.length > 0){
-    //  console.warn("skipping dupes, already initialized");
+    //if (this.items[4].interacted) {
+    //  this.triggerGameComplete();
     //  return;
     //}
-    const nextItemIndex = this.activeItems.length; 
-  console.log(this.activeItems.length-1)
-    const itemToLoad = this.items[nextItemIndex]; 
+    const itemToLoad = this.items[this.levelCompleted]; 
     this.modelLoader.loadItem(this.exit.type, (exitModel) => {
         this.exitDir = Math.round(Math.random());;
         //this.exitDir = 1;
@@ -142,18 +137,19 @@ initializeRandomItems() {
         // Compute bounding box and scale it by 1.5x
         const bbox = new THREE.Box3().setFromObject(itemModel);
         
-        bbox.expandByScalar(1.5);
+        bbox.expandByScalar(1);
         itemModel.userData.boundingBox = bbox;
         itemModel.userData.type = itemToLoad.type;
 
         itemToLoad.interacted = true;
-        console.log(`Item loaded: ${itemToLoad.type} with scaled bounding box at (${itemToLoad.position.x}, ${itemToLoad.position.y}, ${itemToLoad.position.z})`);
+        //console.log(`Item loaded: ${itemToLoad.type} with scaled bounding box at (${itemToLoad.position.x}, ${itemToLoad.position.y}, ${itemToLoad.position.z})`);
 
         // Optionally visualize the scaled bounding box
-        const boxHelper = new THREE.Box3Helper(bbox, 0xfff000); 
-        this.scene.add(boxHelper);
-        this.activeItems.push(itemToLoad);
-      console.log(this.activeItems.length)
+        //const boxHelper = new THREE.Box3Helper(bbox, 0xfff000); 
+        //this.scene.add(boxHelper);
+        if (this.levelCompleted === 0) {
+            this.showPrompt("Objective: Remember her name");
+        }
     });
 }
 
@@ -189,7 +185,7 @@ checkForInteractions() {
         //const pickups = ["diary", "note", "key"];
         if (this.isInteractKeyPressed()) {
             this.interactWithItem(nearestItem);
-            //this.scene.remove(nearestItem);
+            this.scene.remove(nearestItem);
         }
     } else {
         this.hideInteractionPrompt();
@@ -213,51 +209,71 @@ isInteractKeyPressed() {
   return this.isFKeyPressed;
 }
 
-  interactWithItem(itemObject) {
-    const itemType = itemObject.userData.type;
-    console.log("Interacting with:", itemType);
+interactWithItem(itemObject) {
+  const itemType = itemObject.userData.type;
+  //console.log("Interacting with:", itemType);
 
-    // Play associated audio
-    itemObject.add(this.loadedSounds[itemType]);
-    this.sounds.playAudio(itemType);
+  // Play associated audio
+  itemObject.add(this.loadedSounds[itemType]);
+  this.sounds.playAudio(itemType);
 
-    // Handle interactions and remove or keep the item
-    if (itemType === "note" || itemType === "key") {
-      this.playerInventory.addItem({
-        name: itemType === "note" ? "Mysterious Note" : "Rusty Key",
-        description: itemType === "note" ? "A note with cryptic writing. It might hold a clue." : "An old key. Perhaps it opens a hidden door somewhere."
-      });
-      this.scene.remove(itemObject);
-    } else {
-      // For items like paper bag, radio, and box, we play audio but do not remove them
-      console.log(`${itemType} interaction completed, but item not removed.`);
+  // Define item details based on type
+  const itemDetails = {
+    note: {
+      name: "Mysterious Note",
+      description: `Patient exhibits cognitive dissonance, possibly dementia.
+      Frequent mentions of Rose and Angela, both potentially significant.
+      Notably, Rose is often referred to as the youngest, yet the patient
+      insists that Taylor is older, creating contradictions. Despite this,
+      Angela is frequently recalled as possessing the oldest memories. The
+      patient seems to call out to Taylor often, blurring the lines of familial
+      connections. No other records seem to be on hand...`,
+      promptText: "Picked up a note. \n Check inventory with 'I' for details. \n I feel very disorientated..."
+    },
+    key: {
+      name: "Rusty Key",
+      description: `This used to be a key to our special place. 
+      Angela was always the light, but I can still hear Rose laughing and Taylor calling for me.
+      Where do I fit in their stories?`,
+      promptText: "Found an old key. It might open something important."
+    },
+    small_radio: {
+      name: "Portable Radio",
+      description: `I thought I had everything, but now it’s a tangled mess. 
+      Rose was my joy, Taylor my pride, yet without Angela, I feel lost. 
+      Who are they to me now?`,
+      promptText: "The radio crackles faintly. Perhaps it holds a clue."
     }
+  };
 
-    this.interactedItems++;
-    if (this.interactedItems >= 1) {
-      this.endLevel();
-    }
+  if (itemType == "note"){
+    this.player.toggleTopDownView();
+  }
+  if (itemDetails[itemType]) {
+    this.playerInventory.addItem({
+      name: itemDetails[itemType].name,
+      description: itemDetails[itemType].description
+    });
+    this.showPrompt(itemDetails[itemType].promptText);
+  } else {
+    console.log(`${itemType} interaction completed, but item not removed.`);
   }
 
-  playAudio(itemType) {
-    // Implement audio logic here
-    console.log(`Playing audio for: ${itemType}`);
+  this.interactedItems++;
+  if (this.interactedItems >= 1) {
+    this.endLevel();
   }
+}
 
-  displayText(itemType) {
-    // Implement text display logic here
-    console.log(`Displaying text for: ${itemType}`);
-  }
+showPrompt(message) {
+  const prompt = document.getElementById("prompt");
+  prompt.innerText = message;
+  prompt.classList.add("fade-in");
 
-  handleExitSign() {
-    // Implement special trigger logic for the exit sign
-    console.log("Exit sign interaction triggered.");
-  }
-
-  handleRobbieInteraction() {
-    // Implement Robbie the Rabbit interaction logic
-    console.log("Robbie the Rabbit interaction triggered.");
-  }
+  setTimeout(() => {
+    prompt.classList.remove("fade-in");
+  }, 5000); 
+}
 
   endLevel() {
     console.log("Level completed.");
@@ -304,6 +320,7 @@ isInteractKeyPressed() {
   }
   
   triggerGameComplete(){
+    this.showPrompt("Who Am I?");
     initializeAnnyang();
   }
 }

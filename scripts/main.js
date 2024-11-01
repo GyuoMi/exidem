@@ -4,7 +4,14 @@ import { Player } from "./Player.js";
 import { ModelLoader } from "./ModelLoader.js";
 import { Octree } from "three/addons/math/Octree.js";
 import { Interactions } from "./mechanics/Interactions.js";
-import loadLevel1 from "../levels/level1.js";
+import loadLevel1 from "../levels/level.js";
+
+window.onload = function() {
+  const startScreen = document.getElementById("start-screen");
+  setTimeout(() => {
+    startScreen.style.display = "none";
+  }, 2000); // Timing to match blink animation
+};
 
 const container = document.getElementById("canvasContainer");
 const scene = new THREE.Scene();
@@ -75,9 +82,6 @@ function animate() {
     interactions.checkForInteractions();
     updateHUD();
   }
-
-
-
   sceneManager.render();
   sceneManager.updateStats();
 }

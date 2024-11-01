@@ -32,7 +32,7 @@ export class SceneManager {
     window.addEventListener("resize", this.onWindowResize.bind(this));
   }
 
-  createWindowGlass(){
+createWindowGlass(){
     const glassGeometry = new THREE.PlaneGeometry(3.75, 3.75); 
     const glassMaterial = new THREE.MeshPhysicalMaterial({
         color: 0xffffff,
@@ -52,12 +52,12 @@ export class SceneManager {
     // Load skybox textures and set as environment map
     const cubeTextureLoader = new THREE.CubeTextureLoader();
     const envMap = cubeTextureLoader.load([
-        '../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_rt.png', 
-        '../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_lt.png', 
-        '../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_up.png', 
-        '../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_dn.png', 
-        '../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_ft.png', 
-        '../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_bk.png'  
+        '../assets/skybox/retro_skyboxes_pack/Dusk/vz_dusk_rt.png', 
+        '../assets/skybox/retro_skyboxes_pack/Dusk/vz_dusk_lt.png', 
+        '../assets/skybox/retro_skyboxes_pack/Dusk/vz_dusk_up.png', 
+        '../assets/skybox/retro_skyboxes_pack/Dusk/vz_dusk_dn.png', 
+        '../assets/skybox/retro_skyboxes_pack/Dusk/vz_dusk_ft.png', 
+        '../assets/skybox/retro_skyboxes_pack/Dusk/vz_dusk_bk.png'  
     ]);
 
     // Set the cube environment map to the glass material
@@ -70,30 +70,36 @@ export class SceneManager {
     glass.rotation.y = Math.PI / 2; 
     this.scene.add(glass);
 
-    // https://stackoverflow.com/questions/77893145/my-glsl-shaders-are-not-loading-on-liveserver-or-github-pages
     const rainVertShader = document.getElementById('rain-vertex-shader').textContent;
     const rainFragShader = document.getElementById('rain-fragment-shader').textContent;
-    const rainGeometry = new THREE.PlaneGeometry(3.75, 3.75);
     const rainMaterial = new THREE.ShaderMaterial({
       vertexShader: rainVertShader,
       fragmentShader: rainFragShader,
+      //transparent: true,
       uniforms: {
-        u_time: {value: 0},
+        u_time: { value: 0 },
+        u_envMap: { value: envMap },
+        u_cameraPosition: { value: new THREE.Vector3() }
       },
-      transparent: true,
     });
+
+
+    const rainGeometry = new THREE.PlaneGeometry(4.2, 3.75);
     const rain = new THREE.Mesh(rainGeometry, rainMaterial);
-    rain.position.set(-5, 15.5, -4); 
+    const fixedCam = 14.0;
+    rain.position.set(-4.98, 15.5, -4); 
     rain.rotation.y = glass.rotation.y; 
     rain.renderOrder = 1; // ensure rain is rendered on top of the glass
     this.scene.add(rain);
-
-    function animateRain(){
+    const camera = this.camera;
+    
+    function animateRain(time){
       rain.material.uniforms.u_time.value = time / 1000;
+      rain.material.uniforms.u_cameraPosition.value.set(0, 10, 0);
       requestAnimationFrame(animateRain);
     }
     animateRain();
-  }
+}
 
 
   setupMoonlight() {
@@ -120,12 +126,12 @@ export class SceneManager {
   setupSkybox(){
     
     let materialArray = [];
-    let texture_ft = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_ft.png');
-    let texture_bk = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_bk.png');
-    let texture_up = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_up.png');
-    let texture_dn = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_dn.png');
-    let texture_rt = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_rt.png');
-    let texture_lt = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Sinister/vz_sinister_lt.png');
+    let texture_ft = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Dusk/vz_dusk_ft.png');
+    let texture_bk = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Dusk/vz_dusk_bk.png');
+    let texture_up = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Dusk/vz_dusk_up.png');
+    let texture_dn = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Dusk/vz_dusk_dn.png');
+    let texture_rt = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Dusk/vz_dusk_rt.png');
+    let texture_lt = new THREE.TextureLoader().load('../assets/skybox/retro_skyboxes_pack/Dusk/vz_dusk_lt.png');
 
     materialArray.push(new THREE.MeshBasicMaterial({map: texture_ft}));
     materialArray.push(new THREE.MeshBasicMaterial({map: texture_bk}));
@@ -186,7 +192,7 @@ setupLights() {
 
     // Ensure the light is pointing towards the exit sign
     const targetObject = new THREE.Object3D();
-    targetObject.position.set(12.61, 11.5, 1.79); // Adjust as needed
+    targetObject.position.set(12.61, 11.5, 1.79); 
     this.scene.add(targetObject);
     exitLight.target = targetObject;
 
@@ -198,7 +204,7 @@ setupLights() {
     this.scene.add(spotLightHelper);
 
     // dim ambient light attached to the player
-    const playerLight = new THREE.PointLight(0xffffff, 12.5, 10);
+    const playerLight = new THREE.PointLight(0xffffff, 112.5, 10);
     playerLight.castShadow = true;
     playerLight.position.set(0, -1.5, 0);
     playerLight.shadow.mapSize.width = 1024; // Increase for better quality

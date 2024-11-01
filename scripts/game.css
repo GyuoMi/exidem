@@ -43,12 +43,26 @@ body {
   padding: 10px;
 }
 
-.inventory-item {
+#items {
+  flex: 1; /* items expand dynamically*/
+  overflow-y: auto; /* scrolling if container height maxed out*/
   padding: 5px;
-  cursor: pointer;
+  border: 1px solid #444;
 }
+
+.inventory-item {
+  padding: 8px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  border: 1px solid #666;
+  border-radius: 4px;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: background-color 0.3s;
+}
+
 .inventory-item:hover {
-  background-color: #333;
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 #hud {
@@ -133,4 +147,42 @@ body {
 .pause-overlay button:hover {
     background-color: #666;
 }
+
+/* Prompt Fade-in Animation */
+#prompt {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 10px 20px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 1.2em;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s;
+}
+
+#prompt.fade-in {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Blink Start Screen Animation */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  10%, 90% { opacity: 0.1; }
+  50% { opacity: 0.5; }
+}
+
+#start-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  animation: blink 3s ease-in-out;
+}
+
 
