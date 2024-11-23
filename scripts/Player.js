@@ -205,7 +205,7 @@ export class Player {
     this.camera.position.copy(this.playerCollider.end).add(cameraOffset);
 
     this.handleAnimation();
-    //this.teleportPlayerIfOob();
+    this.teleportPlayerIfOob();
     //fake floor
     if (this.camera.position.y < 0) {
       this.playerVelocity.y = 0;
@@ -294,8 +294,8 @@ export class Player {
   // TODO: fix wasd still working while pointer is locked
   controls(deltaTime) {
     // TODO: change speed so it's slower on release
-    const speedDelta = deltaTime * (this.playerOnFloor ? 25 : 8);
-    //const speedDelta = deltaTime * (this.playerOnFloor ? 10 : 8);
+    //const speedDelta = deltaTime * (this.playerOnFloor ? 25 : 8);
+    const speedDelta = deltaTime * (this.playerOnFloor ? 10 : 8);
     const forwardDirection = this.isTopDownView ? -1 : 1;
     const sideDirection = this.isTopDownView ? -1 : 1;
     if (this.keyStates["KeyW"]) {
@@ -316,9 +316,9 @@ export class Player {
     }
     
     // TODO: remove for release
-    if (/*this.playerOnFloor &&*/ this.keyStates["Space"]) {
-      this.playerVelocity.y = 15;
-    }
+    //if (/*this.playerOnFloor &&*/ this.keyStates["Space"]) {
+    //  this.playerVelocity.y = 15;
+    //}
   }
 //TODO: update with bounding box once there is collision with a door object
    teleportPlayerIfOob() {
@@ -326,7 +326,7 @@ export class Player {
       let teleported = false;
 
       // Check for wrong exit first to trigger life loss
-      if ((playerPos.y < 1.32 && this.interactions.exitDir === 1) || (playerPos.y > 12.3 && playerPos.z > -2.60 && this.interactions.exitDir === 0)){
+      if ((playerPos.y < 1.32 && this.interactions.exitDir === 1) || (playerPos.y > 12.3 && playerPos.z > 0.60 && this.interactions.exitDir === 0)){
         // Wrong exit, deduct a life if level ended and life hasn't been lost yet
         console.log("wrong exit");
         if (this.interactions.levelEnded && !this.lifeLost) {
@@ -344,7 +344,7 @@ export class Player {
       } 
       // Correct exit handling
       else if ((playerPos.y < 1.32) || 
-               (playerPos.y > 12.3 && playerPos.z > -2.60)) {
+               (playerPos.y > 12.3 && playerPos.z > 0.60)) {
         console.log("correct exit")
         const newPos = playerPos.y < 1.32 
             ? new THREE.Vector3(playerPos.x, 13.0, playerPos.z) 

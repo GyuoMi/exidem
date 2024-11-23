@@ -81,6 +81,15 @@ export default function loadLevel1(modelLoader, scene, worldOctree, player) {
       worldOctree.fromGraphNode(stairCloneTop);
 
       currentRotation += Math.PI / 2;
+	  
+      const blockingGeometry = new THREE.PlaneGeometry(5,15); 
+      const blockingMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide }); 
+      const blockingMesh = new THREE.Mesh(blockingGeometry, blockingMaterial);
+
+      blockingMesh.position.set(5, 20 , 1.7); 
+      blockingMesh.rotation.y = Math.PI / 2; 
+
+      scene.add(blockingMesh);
 
     interactions.initializeRandomItems();
   });
@@ -156,12 +165,12 @@ sounds.loadPositionalAudio("lamp_swing", "../assets/audio/lamp_swing.mp3", (lamp
         //  softer shadows,  adjust the light's range
         lampLight.distance = 10; 
         lamp.add(lampLight);
-        const lampHelper = new THREE.PointLightHelper(lampLight);
-        scene.add(lampHelper);
+        //const lampHelper = new THREE.PointLightHelper(lampLight);
+        //scene.add(lampHelper);
 
         lamp.add(lampSound);
         lampSound.setLoop(true);
-        lampSound.setVolume(0.125);
+        lampSound.setVolume(0.0625);
         lampSound.play();
         scene.add(lamp);
 

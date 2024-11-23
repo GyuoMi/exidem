@@ -80,7 +80,7 @@ function animate() {
     //player.controls(deltaTime);
     player.update(deltaTime);
     interactions.checkForInteractions();
-    updateHUD();
+    //updateHUD();
   }
   sceneManager.render();
   sceneManager.updateStats();

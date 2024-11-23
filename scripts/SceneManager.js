@@ -116,8 +116,8 @@ createWindowGlass(){
 
     // Optional: Add a helper to visualize the light
     //const helper = new THREE.PointLightHelper(moonlight, 0.5);
-    const helper = new THREE.CameraHelper(moonlight.shadow.camera);
-    this.scene.add(helper);
+    //const helper = new THREE.CameraHelper(moonlight.shadow.camera);
+    //this.scene.add(helper);
 
     this.scene.add(moonlight);
     this.scene.add(moonlight.target);
@@ -200,11 +200,11 @@ setupLights() {
     this.scene.add(exitLight);
     this.randomFlicker(exitLight);
     // visualiser
-    const spotLightHelper = new THREE.SpotLightHelper(exitLight);
-    this.scene.add(spotLightHelper);
+    //const spotLightHelper = new THREE.SpotLightHelper(exitLight);
+    //this.scene.add(spotLightHelper);
 
     // dim ambient light attached to the player
-    const playerLight = new THREE.PointLight(0xffffff, 112.5, 10);
+    const playerLight = new THREE.PointLight(0xffffff, 10.5, 10);
     playerLight.castShadow = true;
     playerLight.position.set(0, -1.5, 0);
     playerLight.shadow.mapSize.width = 1024; // Increase for better quality
