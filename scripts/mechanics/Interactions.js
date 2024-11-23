@@ -4,6 +4,7 @@ import { buildTwistMaterial } from "../objects/shaders/shaderPatch.js";
 import { Octree } from "three/addons/math/Octree.js";
 import { Sounds } from "./Sounds.js";
 import { Inventory } from "./Inventory.js";
+import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
 
 // tps perspective for item interactions inverted controls
 // window on wall for skybox
@@ -26,12 +27,14 @@ function detectBrowser() {
 let chromium = true;
 let browserName;
 // Initialize annyang and check if it’s a Chromium browser
-function initializeAnnyang() {
+function initializeAnnyang(playerCam, sounds) {
     if (annyang) {
         const commands = {
             'angela': () => {
+              //sounds.muteAllSounds(true);
+              sounds.playAudio("ending");
                 //alert('remembered');
-                playEnding();
+              playEnding();
             }
         };
         annyang.addCommands(commands);
@@ -61,6 +64,8 @@ function playEnding() {
     endScreen.style.flexDirection = 'column';
     endScreen.style.fontFamily = 'Courier New, Courier, monospace';;
     endScreen.style.fontSize = '20px';
+    endScreen.style.opacity = 0; 
+    endScreen.style.transition = 'opacity 2s';
     document.body.appendChild(endScreen);
 
     if (chromium) {
@@ -76,19 +81,21 @@ function playEnding() {
 
     } else {
         endScreen.innerHTML = `
-            <img src="../../assets/non-chromium.png" alt="Non-Chromium Ending Image" style="max-width: 80%; height: auto; margin-bottom: 20px;">
+            <img src="../assets/non-chromium.png" alt="Non-Chromium Ending Image" style="max-width: 80%; height: auto; margin-bottom: 20px;">
             <p>An alternate ending unfolds here in ${detectBrowser()}...</p>
         `;
     }
-
-    // Fade-out transition to main menu after a delay
+    requestAnimationFrame(() => {
+        endScreen.style.opacity = 1; 
+    });
+    
     setTimeout(() => {
         endScreen.style.transition = 'opacity 2s';
         endScreen.style.opacity = 0;
         setTimeout(() => {
-            window.location.href = '../../index.html';
-        }, 2000); // Wait for fade-out before navigating
-    }, 8000); // Display ending for 8 seconds before fading out
+            window.location.href = '../index.html';
+        }, 2000); 
+    }, 23000); 
 }
 
 export class Interactions {
@@ -104,7 +111,7 @@ export class Interactions {
       { type: "note", position: new THREE.Vector3(10.65, 9.85, -12.33), interacted: false },
       { type: "cardboard_box", position: new THREE.Vector3(3.64, 3.2, -0.18), interacted: false },
       { type: "key", position: new THREE.Vector3(-2.8, 13.24, -9.3), interacted: false },
-      { type: "small_radio", position: new THREE.Vector3(10.21, 5.59, 2.79), interacted: false },
+      { type: "small_radio", position: new THREE.Vector3(10.21, 5.59, 2.79), interacted: false},
     ];
     // TODO: add extra second for audios since they cut out early
     // TODO: enable random exit direction
@@ -112,8 +119,10 @@ export class Interactions {
     // integrate boss and death
     // try to sort out robbie Rabbit peephole
 
+    this.bossModel = null;
     this.exit = { type: "exit_sign", position: new THREE.Vector3(12.61, 12.49, 1.79) };
     this.exitDir;//(Math.random()>=0.5)? 1 : 0;
+    this.exitString;
     this.activeItems = [];
     this.interactedItems = 0;
     this.levelCompleted = 0;
@@ -139,6 +148,7 @@ export class Interactions {
         }
     });
 
+    //this.loadBossModel();
     this.playerInventory = new Inventory();
     this.loadAllAudio();
   }
@@ -167,6 +177,9 @@ loadAllAudio() {
     this.sounds.loadAudio("respawn", "../assets/audio/respawn.mp3", (sound) => {
         this.loadedSounds.respawn = sound;
     });
+    this.sounds.loadAudio("ending", "../assets/audio/ending.mp3", (sound) => {
+        this.loadedSounds.ending = sound;
+    });  
 }
 
 initializeRandomItems() {
@@ -180,9 +193,10 @@ initializeRandomItems() {
     }
     const itemToLoad = this.items[this.levelCompleted]; 
     this.modelLoader.loadItem(this.exit.type, (exitModel) => {
-        this.exitDir = Math.round(Math.random());;
+        this.exitDir = Math.round(Math.random());
         //this.exitDir = 1;
-        console.log("exit:", this.exitDir === 1 ? "up" : this.exitDir === 0 ? "down" : this.exitDir);
+	this.exitString = this.exitDir === 1 ? "up" : this.exitDir === 0 ? "down" : this.exitDir;
+        console.log("exit:", this.exitString);
         // logic is the sign points down when rotated, and points up by default
         if (!this.exitDir){ // but then will be false here so it doesn't rotate
           console.log("rotated");
@@ -212,7 +226,7 @@ initializeRandomItems() {
         //const boxHelper = new THREE.Box3Helper(bbox, 0xfff000); 
         //this.scene.add(boxHelper);
         if (this.levelCompleted === 0) {
-            this.showPrompt("Objective: Remember her name");
+            this.showPrompt("Objective: Remember her name\n Pick up items to piece together your memory of your wife and follow the exit sign to progress");
         }
     });
 }
@@ -292,21 +306,21 @@ interactWithItem(itemObject) {
       Angela is frequently recalled as possessing the oldest memories. The
       patient seems to call out to Taylor often, blurring the lines of familial
       connections. No other records seem to be on hand...`,
-      promptText: "Picked up a note. \n Check inventory with 'I' for details. \n I feel very disorientated..."
+      promptText: `Picked up a note. \n Follow the exit sign and take the ${this.exitString} exit. \n Check inventory with 'I' for details. \n I feel very disorientated...`
     },
     key: {
       name: "Rusty Key",
       description: `This used to be a key to our special place. 
       Angela was always the light, but I can still hear Rose laughing and Taylor calling for me.
       Where do I fit in their stories?`,
-      promptText: "Found an old key. It might open something important."
+      promptText: "Found an old key. It might open something important.\n Check inventory with 'I' for details."
     },
     small_radio: {
       name: "Portable Radio",
       description: `I thought I had everything, but now it’s a tangled mess. 
       Rose was my joy, Taylor my pride, yet without Angela, I feel lost. 
       Who are they to me now?`,
-      promptText: "The radio crackles faintly. Perhaps it holds a clue."
+      promptText: "The radio crackles faintly. Perhaps it holds a clue.\n Check inventory with 'I' for details."
     }
   };
 
@@ -376,16 +390,71 @@ showPrompt(message) {
     }
   }
 
+  loadBossModel() {
+    const fbxLoader = new FBXLoader();
+    fbxLoader.setPath('../assets/models/boss/');
+    fbxLoader.load('boss.fbx', (fbx) => {
+      fbx.scale.setScalar(1);
+      fbx.traverse(c => {
+        c.castShadow = true;
+      });
+
+      this.mixer = new THREE.AnimationMixer(fbx);
+      this.scene.add(fbx);
+
+      // Load idle animation
+      fbxLoader.load('boss_anim.fbx', (anim) => {
+        this.idleAction = this.mixer.clipAction(anim.animations[0]);
+        this.idleAction.play();
+      });
+
+      this.bossModel = fbx;
+    });
+  }
 
   triggerGameOver() {
     console.log("Game Over");
     this.sounds.playAudio("game_over");
-    //this.levelEnded = true;
+
+    //// Teleport the boss to a position close to the player
+    //if (this.bossModel) {
+    //    const playerPosition = this.player.position; // Adjust to the player's approximate position
+    //    this.bossModel.position.copy(playerPosition);
+    //    this.bossModel.lookAt(this.camera.position); // Make the boss face the player
+    //}
+
+    // Show death screen by fading to black
+    this.showDeathScreen();
+  }
+
+  // Function to show the fade-to-black death screen
+  showDeathScreen() {
+      const fadeOverlay = document.createElement('div');
+      fadeOverlay.style.position = 'fixed';
+      fadeOverlay.style.top = 0;
+      fadeOverlay.style.left = 0;
+      fadeOverlay.style.width = '100%';
+      fadeOverlay.style.height = '100%';
+      fadeOverlay.style.backgroundColor = 'black';
+      fadeOverlay.style.opacity = 0;
+      fadeOverlay.style.transition = 'opacity 2s'; // 2-second fade-in
+      document.body.appendChild(fadeOverlay);
+
+      // Start the fade-in effect
+      setTimeout(() => {
+          fadeOverlay.style.opacity = 1;
+      }, 3000);
+
+      // Redirect to the main menu after the fade-in completes
+      setTimeout(() => {
+          window.location.href = '../index.html'; // Adjust path to your main menu
+      }, 6000); // Wait 3 seconds for full effect
   }
   
   triggerGameComplete(){
     this.showPrompt("Who Am I?");
-    initializeAnnyang();
+    initializeAnnyang(this.player.camera,this.sounds);
+    
   }
 }
 

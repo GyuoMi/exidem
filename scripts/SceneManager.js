@@ -204,7 +204,7 @@ setupLights() {
     //this.scene.add(spotLightHelper);
 
     // dim ambient light attached to the player
-    const playerLight = new THREE.PointLight(0xffffff, 112.5, 10);
+    const playerLight = new THREE.PointLight(0xffffff, 10.5, 10);
     playerLight.castShadow = true;
     playerLight.position.set(0, -1.5, 0);
     playerLight.shadow.mapSize.width = 1024; // Increase for better quality

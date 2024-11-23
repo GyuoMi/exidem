@@ -98,5 +98,8 @@ export class Sounds {
             console.error(`sound ${name} not found.`);
         }
     }
+      muteAllSounds(mute) {
+        this.listener.gain.gain.setValueAtTime(mute ? 0 : 1, this.listener.context.currentTime);
+    }
 }
 
